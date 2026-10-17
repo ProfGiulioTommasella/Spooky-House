@@ -299,7 +299,7 @@ button {
   font-weight: 700;
   line-height: 1.22;
   color: var(--inchiostro);
-  background: url("../assets/img/pergamena.png") center / 100% 100% no-repeat;
+  background: url("../assets/img/pergamena.png?v=2") center / 100% 100% no-repeat;
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.7));
   animation: srotola 0.35s ease-out;
   pointer-events: none;
@@ -418,7 +418,7 @@ button {
   padding: 34px 80px 30px;
   text-align: center;
   color: var(--inchiostro);
-  background: url("../assets/img/pergamena.png") center / 100% 100% no-repeat;
+  background: url("../assets/img/pergamena.png?v=2") center / 100% 100% no-repeat;
   filter: drop-shadow(0 10px 18px #000);
   display: flex;
   flex-direction: column;

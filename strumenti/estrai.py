@@ -175,6 +175,12 @@ FILE_HD = {
     16: "T_ guardiola sfondo", 17: "T_ torre sfondo", 18: "S_ corr 5 sfondo", 19: "S_ cucina sfondo",
     20: "S_ scantinato sfondo",
 }
+# Sprite esportati da Canva con lo sfondo trasparente: si ritagliano e si salvano al doppio
+# della dimensione usata nel gioco (il gioco li disegna sempre alla dimensione di js/maschere.js).
+SPRITE_HD = {
+    "gargoyle-1": "Gargoyle su", "gargoyle-2": "Gargoyle giù", "armatura": "armatura", "amici": "EXIT amici",
+    "chiave-torre": "Chiave torre x semint", "chiave-piccola": "Chiave bagno PT x ...1", "pergamena": "pergamena",
+}
 LATO_HD = 2  # le stanze in alta risoluzione sono 960x720 moltiplicato per questo
 
 
@@ -187,7 +193,11 @@ def alta_risoluzione(file, basso):
     if not os.path.exists(percorso):
         return None
     dim = (960 * LATO_HD, 720 * LATO_HD)
-    hd = np.array(Image.open(percorso).convert("RGB").resize(dim, Image.LANCZOS)).astype(float)
+    originale = Image.open(percorso)
+    if originale.mode == "RGBA" and originale.getextrema()[3][0] < 255:
+        # esportato da Canva con lo sfondo trasparente: va bene così com'è
+        return originale.resize(dim, Image.LANCZOS)
+    hd = np.array(originale.convert("RGB").resize(dim, Image.LANCZOS)).astype(float)
     grande = basso.resize(dim, Image.BICUBIC)
     alfa = np.array(grande.split()[3]).astype(float) / 255.0
     # sui bordi semitrasparenti il bianco di Canva farebbe un alone: lì si usa il colore di Scratch
@@ -341,7 +351,23 @@ def main():
     for s in SPRITE["Piano"]["sounds"]:
         n = int(s["name"].split()[0])
         mp3(s["md5ext"], f"frammenti/{n:02d}.mp3", mono=False, kbps=128, filtro="loudnorm=I=-18:TP=-1.5")
+    sprite_alta_risoluzione()
     print("Fatto.")
+
+
+def sprite_alta_risoluzione():
+    if not CARTELLA_HD:
+        return
+    for file, nome in SPRITE_HD.items():
+        percorso = os.path.join(CARTELLA_HD, nome + ".png")
+        if not os.path.exists(percorso):
+            continue
+        hd = Image.open(percorso).convert("RGBA")
+        if hd.getextrema()[3][0] == 255:
+            continue  # senza trasparenza non si può usare
+        attuale = Image.open(os.path.join(IMG, file + ".png"))
+        pezzo = hd.crop(hd.getbbox()).resize((attuale.width * LATO_HD, attuale.height * LATO_HD), Image.LANCZOS)
+        salva_png(pezzo, file + ".png")
 
 
 if __name__ == "__main__":

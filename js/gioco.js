@@ -65,13 +65,13 @@
   for (const n of ["copertina", "casa", "casa-fantasmi"]) pronte.push(carica(n, `assets/img/${n}.jpg`));
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
     "fantasma-sx", "fantasma-dx", "fantasma-libro-sx", "fantasma-libro-dx", "gargoyle-1", "gargoyle-2", "amici", "torcia",
-    "chiave-piccola", "chiave-torre", "pallone", "armatura"]) pronte.push(carica(n, `assets/img/${n}.png`));
+    "chiave-piccola", "chiave-torre", "pallone", "armatura"]) pronte.push(carica(n, `assets/img/${n}.png?v=2`));
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png`));
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
   for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png`;
   for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png?v=2`;
   new Image().src = "assets/img/fine.jpg";
-  new Image().src = "assets/img/pergamena.png";
+  new Image().src = "assets/img/pergamena.png?v=2";
 
   // ---------------------------------------------------------------
   //  Maschere di collisione (da js/maschere.js)
@@ -504,7 +504,7 @@
     d.dataset.oggetto = o;
     d.title = TITOLI_ZAINO[o];
     const i = document.createElement("img");
-    i.src = `assets/img/${o}.png`;
+    i.src = `assets/img/${o}.png?v=2`;
     i.alt = TITOLI_ZAINO[o];
     d.appendChild(i);
     zainoEl.appendChild(d);
@@ -1034,7 +1034,9 @@
     ctx.translate(x, y);
     if (ang) ctx.rotate(ang);
     ctx.scale(scala, scala);
-    ctx.drawImage(i, -px, -py);
+    // le immagini possono essere in alta risoluzione: si disegnano sempre alla dimensione di js/maschere.js
+    if (info) ctx.drawImage(i, -px, -py, info.w, info.h);
+    else ctx.drawImage(i, -px, -py);
     ctx.restore();
   }
   function ombra(x, y, rx, ry, a = 0.35) {
