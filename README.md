@@ -95,7 +95,8 @@ js/stanze.js          stanze, porte, oggetti e fantasmi
 js/maschere.js        ostacoli, porte e buchi di ogni stanza (generato)
 js/traduzioni.js      traduzioni per la versione bilingue
 js/gioco.js           motore di gioco
-assets/img/           sfondi delle stanze, personaggi e ritratti dal progetto Scratch
+assets/img/           sfondi delle stanze (da Canva, 1920x1440), personaggi e ritratti dal progetto Scratch
 assets/audio/         effetti sonori e i 16 frammenti dal progetto Scratch
-strumenti/estrai.py   rigenera assets e js/maschere.js dal file .sb3 (Pillow, numpy, ffmpeg)
+strumenti/estrai.py   rigenera assets e js/maschere.js dal file .sb3 (Pillow, numpy, ffmpeg);
+                      con la cartella degli sfondi Canva come secondo argomento, le stanze escono a 1920x1440
 ```

@@ -1,6 +1,10 @@
 """Estrae dal progetto Scratch (Spooky House.sb3) immagini, suoni e maschere delle stanze.
 
-Uso:  python3 strumenti/estrai.py "percorso/Spooky House.sb3"
+Uso:  python3 strumenti/estrai.py "percorso/Spooky House.sb3" ["cartella con gli sfondi da Canva"]
+
+La cartella facoltativa contiene gli sfondi e i pianoforti esportati da Canva in
+alta risoluzione (3840x2880, stessi nomi dello zip "Spooky House - STANZE"):
+se c'è, le stanze vengono salvate a 1920x1440 invece che a 960x720.
 
 Serve Python 3 con Pillow e numpy, e ffmpeg per convertire i suoni in mp3.
 Rigenera assets/img, assets/audio e js/maschere.js.
@@ -17,6 +21,7 @@ AUDIO = os.path.join(RADICE, "assets", "audio")
 CELLA = 4  # lato in pixel di una cella delle maschere di collisione (stanza 960x720)
 
 sb3 = zipfile.ZipFile(sys.argv[1] if len(sys.argv) > 1 else os.path.join(RADICE, "..", "Spooky House.sb3"))
+CARTELLA_HD = sys.argv[2] if len(sys.argv) > 2 else None
 progetto = json.loads(sb3.read("project.json"))
 SPRITE = {t["name"]: t for t in progetto["targets"]}
 
@@ -55,7 +60,9 @@ def salva_png(im, nome):
     im.save(os.path.join(IMG, nome), optimize=True)
 
 
-def salva_jpg(im, nome, q=93):
+def salva_jpg(im, nome, q=None):
+    if q is None:
+        q = 93 if im.width <= 960 else 86  # le stanze in alta risoluzione reggono una compressione maggiore
     sfondo = Image.new("RGB", im.size, (0, 0, 0))
     sfondo.paste(im, (0, 0), im)
     sfondo.save(os.path.join(IMG, nome), quality=q, subsampling=0, optimize=True, progressive=True)
@@ -101,26 +108,34 @@ SENZA_OMBRA = {0, 15, 21}
 
 
 def arreda(n, sfondo, ostacoli):
+    """sfondo: la stanza a 960x720 o a una risoluzione multipla (es. 1920x1440);
+    ostacoli: il costume degli ostacoli posato sulla stanza 960x720."""
     from PIL import ImageDraw, ImageFilter
+    s = sfondo.width / 960
+    S = lambda v: max(1, round(v * s))
+    dispari = lambda v: S(v) | 1
     rng = np.random.default_rng(n)
-    base = np.array(sfondo.convert("RGB")).astype(float)
-    luce = base.mean(axis=2)
-    pieno = np.array(ostacoli)[:, :, 3] > 40
-    pavimento = np.array(Image.fromarray((luce > 28).astype(np.uint8) * 255).filter(ImageFilter.MinFilter(9))) > 0
+    alfa = np.array(sfondo.split()[3]).astype(float) / 255.0
+    base = np.array(sfondo.convert("RGB")).astype(float) * alfa[:, :, None]
+    pieno = np.array(ostacoli.resize(sfondo.size, Image.BILINEAR))[:, :, 3] > 100
+    # il pavimento: la parte non trasparente della stanza, chiudendo le fessure sottili fra le assi
+    pavimento = Image.fromarray((alfa > 0.5).astype(np.uint8) * 255)
+    pavimento = pavimento.filter(ImageFilter.MaxFilter(dispari(15))).filter(ImageFilter.MinFilter(dispari(15)))
+    pavimento = np.array(pavimento.filter(ImageFilter.MinFilter(dispari(9)))) > 0
     teli = np.zeros(pieno.shape, bool)
     for x1, y1, x2, y2 in MOBILI.get(n, []):
-        teli[y1:y2, x1:x2] |= pieno[y1:y2, x1:x2]
-    chiuso = Image.fromarray(pavimento.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(21)).filter(ImageFilter.MinFilter(21))
-    teli &= np.array(chiuso) > 0
+        teli[S(y1):S(y2), S(x1):S(x2)] |= pieno[S(y1):S(y2), S(x1):S(x2)]
+    teli &= pavimento
     if n not in SENZA_OMBRA:
         resto = pieno & pavimento & ~teli
-        ombra = np.array(Image.fromarray(resto.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(6))) / 255.0
+        ombra = np.array(Image.fromarray(resto.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(S(6)))) / 255.0
         base *= (1 - 0.45 * ombra)[:, :, None]
     if teli.any():
-        forma = Image.fromarray(teli.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(3)).point(lambda v: 255 if v > 110 else 0)
+        forma = Image.fromarray(teli.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(S(3))).point(lambda v: 255 if v > 110 else 0)
+        forma = forma.filter(ImageFilter.GaussianBlur(s * 0.7))
         f = np.array(forma) / 255.0
         # ombra portata
-        om = np.array(forma.transform(forma.size, Image.AFFINE, (1, 0, -7, 0, 1, -10)).filter(ImageFilter.GaussianBlur(9))) / 255.0
+        om = np.array(forma.transform(forma.size, Image.AFFINE, (1, 0, -S(7), 0, 1, -S(10))).filter(ImageFilter.GaussianBlur(S(9)))) / 255.0
         base *= (1 - 0.6 * om * (1 - f))[:, :, None]
         # il telo: chiaro in alto, più scuro in basso, con pieghe e polvere
         h, w = f.shape
@@ -132,22 +147,54 @@ def arreda(n, sfondo, ostacoli):
         d = ImageDraw.Draw(pieghe)
         for x1, y1, x2, y2 in MOBILI.get(n, []):
             for _ in range(max(3, (x2 - x1) * (y2 - y1) // 2500)):
-                px, py = rng.uniform(x1, x2), rng.uniform(y1, y2)
+                px, py = rng.uniform(x1, x2) * s, rng.uniform(y1, y2) * s
                 ang = rng.uniform(-0.9, 0.9) + (np.pi / 2 if rng.random() < 0.5 else 0)
-                lun = rng.uniform(25, 80)
-                d.line([(px - np.cos(ang) * lun, py - np.sin(ang) * lun), (px + np.cos(ang) * lun, py + np.sin(ang) * lun)], fill=int(rng.uniform(90, 170)), width=int(rng.uniform(3, 7)))
-        pg = np.array(pieghe.filter(ImageFilter.GaussianBlur(4))) / 255.0
+                lun = rng.uniform(25, 80) * s
+                d.line([(px - np.cos(ang) * lun, py - np.sin(ang) * lun), (px + np.cos(ang) * lun, py + np.sin(ang) * lun)], fill=int(rng.uniform(90, 170)), width=S(rng.uniform(3, 7)))
+        pg = np.array(pieghe.filter(ImageFilter.GaussianBlur(S(4)))) / 255.0
         telo *= (1 - 0.28 * pg)[:, :, None]
-        luci = np.array(pieghe.transform(pieghe.size, Image.AFFINE, (1, 0, 3, 0, 1, 3)).filter(ImageFilter.GaussianBlur(3))) / 255.0
+        luci = np.array(pieghe.transform(pieghe.size, Image.AFFINE, (1, 0, S(3), 0, 1, S(3))).filter(ImageFilter.GaussianBlur(S(3)))) / 255.0
         telo += (18 * luci * (1 - pg))[:, :, None]
-        bordo = f - np.array(forma.filter(ImageFilter.GaussianBlur(7))) / 255.0
+        bordo = f - np.array(forma.filter(ImageFilter.GaussianBlur(S(7)))) / 255.0
         telo *= (1 - 0.35 * np.clip(bordo, 0, 1) * 2)[:, :, None]
         telo += rng.normal(0, 5, (h, w))[:, :, None]
-        polvere = rng.random((h, w)) < 0.004
+        polvere = rng.random((h, w)) < 0.004 / (s * s)
         telo[polvere] *= 0.75
         base = base * (1 - f[:, :, None]) + telo * f[:, :, None]
     out = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8)).convert("RGBA")
     out.putalpha(sfondo.split()[3])
+    return out
+
+
+# Nomi dei file ad alta risoluzione esportati da Canva
+FILE_HD = {
+    0: "Exit sfondo", 1: "PT_ ingresso sfondo", 2: "PT_ vestibolo sfondo", 3: "PT_ pranzo sfondo",
+    4: "PT_ corridoio 1 sfondo", 5: "PT_ bagno sfondo", 6: "PT_ biblio sfondo", 7: "PT_ corridoio 2 sfondo",
+    8: "PT_ studio sfondo", 9: "P1_ salone sfondo", 10: "P1_ corr 3 sfondo", 11: "P1_ salotto sfondo",
+    12: "P1_ bagno sfondo", 13: "P1_ camera1 sfondo", 14: "P1_ camera2 sfondo", 15: "T_ corr 3 sfondo",
+    16: "T_ guardiola sfondo", 17: "T_ torre sfondo", 18: "S_ corr 5 sfondo", 19: "S_ cucina sfondo",
+    20: "S_ scantinato sfondo",
+}
+LATO_HD = 2  # le stanze in alta risoluzione sono 960x720 moltiplicato per questo
+
+
+def alta_risoluzione(file, basso):
+    """L'immagine di Canva (fondo bianco, nessuna trasparenza) ridotta a 1920x1440,
+    con la trasparenza presa dal costume Scratch corrispondente (basso, 960x720)."""
+    if not CARTELLA_HD:
+        return None
+    percorso = os.path.join(CARTELLA_HD, file + ".png")
+    if not os.path.exists(percorso):
+        return None
+    dim = (960 * LATO_HD, 720 * LATO_HD)
+    hd = np.array(Image.open(percorso).convert("RGB").resize(dim, Image.LANCZOS)).astype(float)
+    grande = basso.resize(dim, Image.BICUBIC)
+    alfa = np.array(grande.split()[3]).astype(float) / 255.0
+    # sui bordi semitrasparenti il bianco di Canva farebbe un alone: lì si usa il colore di Scratch
+    bordo = (alfa < 0.98)[:, :, None]
+    rgb = np.where(bordo, np.array(grande.convert("RGB")).astype(float), hd)
+    out = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8)).convert("RGBA")
+    out.putalpha(Image.fromarray((alfa * 255).astype(np.uint8)))
     return out
 
 
@@ -190,7 +237,9 @@ def main():
     for n, (sf, ost, porte, vuoto) in STANZE.items():
         ostacoli = sulla_scena("Ostacoli", ost)
         if n != 21:
-            salva_jpg(arreda(n, sulla_scena("Sfondo", sf), ostacoli), f"stanze/{n}.jpg")
+            basso = sulla_scena("Sfondo", sf)
+            sfondo = alta_risoluzione(FILE_HD.get(n, ""), basso) or basso
+            salva_jpg(arreda(n, sfondo, ostacoli), f"stanze/{n}.jpg")
         s = {"ostacoli": maschera(ostacoli), "porte": {}}
         for i, p in enumerate(porte):
             if p:
@@ -238,7 +287,10 @@ def main():
             salva_png(pezzo, f"{c.lower()}-{umore}.png")
     for i, nome in enumerate(["Piano 1 fermo", "Piano 2 luce", "Piano 3 luce", "Piano 4 luce"]):
         im = sulla_scena("Piano", nome)
-        pezzo, _ = ritaglia(im)
+        pezzo, box = ritaglia(im)
+        hd = alta_risoluzione(nome, im)
+        if hd:
+            pezzo = hd.crop(tuple(v * LATO_HD for v in box))
         salva_png(pezzo, f"pianoforte-{i}.png")
     im = sulla_scena("Consigli", "pergamena vuota")
     salva_png(ritaglia(im)[0], "pergamena.png")

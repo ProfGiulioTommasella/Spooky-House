@@ -60,7 +60,7 @@
     });
   }
   const pronte = [];
-  for (const n of Object.keys(STANZE)) if (n !== "21") pronte.push(carica("stanza" + n, `assets/img/stanze/${n}.jpg`));
+  for (const n of Object.keys(STANZE)) if (n !== "21") pronte.push(carica("stanza" + n, `assets/img/stanze/${n}.jpg?v=2`));
   img.stanza21 = img.stanza0;
   for (const n of ["copertina", "casa", "casa-fantasmi"]) pronte.push(carica(n, `assets/img/${n}.jpg`));
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
@@ -69,7 +69,7 @@
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png`));
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
   for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png`;
-  for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png`;
+  for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png?v=2`;
   new Image().src = "assets/img/fine.jpg";
   new Image().src = "assets/img/pergamena.png";
 
@@ -1450,7 +1450,7 @@
     });
     $("piano-esito").classList.add("nascosto");
     $("piano-strumento").classList.remove("nascosto");
-    $("piano-img").src = "assets/img/pianoforte-0.png";
+    $("piano-img").src = "assets/img/pianoforte-0.png?v=2";
     $("piano-barra-pieno").style.width = "0";
     if (pf.primo && pf.parte === 0) scriviTesto($("piano-messaggio"), TESTI_PIANO.istruzioni);
     else $("piano-messaggio").textContent = "";
@@ -1475,7 +1475,7 @@
     clearInterval(pf.anim);
     pf.anim = setInterval(() => {
       fotogramma = (fotogramma % 3) + 1;
-      $("piano-img").src = `assets/img/pianoforte-${fotogramma}.png`;
+      $("piano-img").src = `assets/img/pianoforte-${fotogramma}.png?v=2`;
       const d = a.duration || 1;
       $("piano-barra-pieno").style.width = `${Math.min(100, (a.currentTime / d) * 100)}%`;
       const secondi = (performance.now() - pf.inizio) / 1000;
@@ -1491,7 +1491,7 @@
   function fermaAnimazionePiano() {
     clearInterval(pf.anim);
     pf.anim = null;
-    $("piano-img").src = "assets/img/pianoforte-0.png";
+    $("piano-img").src = "assets/img/pianoforte-0.png?v=2";
   }
   function sfumaBrano(a) {
     if (!a) return;
