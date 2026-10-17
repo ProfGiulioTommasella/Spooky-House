@@ -85,88 +85,18 @@ def riquadro(im, soglia=40):
 
 
 # ------------------------------------------------------------------
-# Nel progetto Scratch molti ostacoli dentro le stanze sono invisibili (i mobili
-# non sono disegnati nello sfondo). Qui si disegnano mobili coperti da teli
-# bianchi nei riquadri indicati, e si scurisce un po' il pavimento dove ci sono
-# altri ostacoli, così si vede dove non si può camminare.
-MOBILI = {
-    2: [(412, 144, 492, 316), (524, 344, 704, 416)],
-    3: [(340, 236, 664, 484)],
-    4: [(244, 248, 344, 348)],
-    5: [(284, 456, 466, 524), (500, 446, 624, 524)],
-    6: [(540, 388, 652, 500), (168, 144, 292, 268)],
-    7: [(432, 396, 520, 480)],
-    8: [(384, 440, 576, 552), (684, 140, 804, 260), (84, 544, 244, 628), (140, 148, 228, 212)],
-    11: [(720, 316, 844, 440)],
-    13: [(600, 252, 824, 472)],
-    14: [(648, 64, 776, 168), (100, 456, 224, 580), (664, 300, 910, 420)],
-    18: [(436, 432, 524, 516)],
-    19: [(424, 328, 640, 448), (370, 86, 704, 224)],
-    20: [(416, 344, 552, 456), (216, 128, 392, 204)],
-}
-SENZA_OMBRA = {0, 15, 21}
+# Ogni stanza è fatta di livelli sovrapposti: sfondo, poi il vuoto (se c'è),
+# poi gli ostacoli (muri e mobili). Dal progetto Scratch si prendono i costumi
+# corrispondenti; con la cartella Canva gli stessi livelli in alta risoluzione.
+def componi(livelli):
+    tela = Image.new("RGBA", livelli[0].size, (0, 0, 0, 0))
+    for im in livelli:
+        tela.alpha_composite(im.convert("RGBA").resize(tela.size, Image.LANCZOS))
+    return tela
 
 
-def arreda(n, sfondo, ostacoli):
-    """sfondo: la stanza a 960x720 o a una risoluzione multipla (es. 1920x1440);
-    ostacoli: il costume degli ostacoli posato sulla stanza 960x720."""
-    from PIL import ImageDraw, ImageFilter
-    s = sfondo.width / 960
-    S = lambda v: max(1, round(v * s))
-    dispari = lambda v: S(v) | 1
-    rng = np.random.default_rng(n)
-    alfa = np.array(sfondo.split()[3]).astype(float) / 255.0
-    base = np.array(sfondo.convert("RGB")).astype(float) * alfa[:, :, None]
-    pieno = np.array(ostacoli.resize(sfondo.size, Image.BILINEAR))[:, :, 3] > 100
-    # il pavimento: la parte non trasparente della stanza, chiudendo le fessure sottili fra le assi
-    pavimento = Image.fromarray((alfa > 0.5).astype(np.uint8) * 255)
-    pavimento = pavimento.filter(ImageFilter.MaxFilter(dispari(15))).filter(ImageFilter.MinFilter(dispari(15)))
-    pavimento = np.array(pavimento.filter(ImageFilter.MinFilter(dispari(9)))) > 0
-    teli = np.zeros(pieno.shape, bool)
-    for x1, y1, x2, y2 in MOBILI.get(n, []):
-        teli[S(y1):S(y2), S(x1):S(x2)] |= pieno[S(y1):S(y2), S(x1):S(x2)]
-    teli &= pavimento
-    if n not in SENZA_OMBRA:
-        resto = pieno & pavimento & ~teli
-        ombra = np.array(Image.fromarray(resto.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(S(6)))) / 255.0
-        base *= (1 - 0.45 * ombra)[:, :, None]
-    if teli.any():
-        forma = Image.fromarray(teli.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(S(3))).point(lambda v: 255 if v > 110 else 0)
-        forma = forma.filter(ImageFilter.GaussianBlur(s * 0.7))
-        f = np.array(forma) / 255.0
-        # ombra portata
-        om = np.array(forma.transform(forma.size, Image.AFFINE, (1, 0, -S(7), 0, 1, -S(10))).filter(ImageFilter.GaussianBlur(S(9)))) / 255.0
-        base *= (1 - 0.6 * om * (1 - f))[:, :, None]
-        # il telo: chiaro in alto, più scuro in basso, con pieghe e polvere
-        h, w = f.shape
-        yy = np.linspace(0, 1, h)[:, None]
-        telo = np.zeros((h, w, 3))
-        telo[:] = np.array([226, 220, 206])
-        telo *= (1.02 - 0.16 * yy)[:, :, None]
-        pieghe = Image.new("L", (w, h), 0)
-        d = ImageDraw.Draw(pieghe)
-        for x1, y1, x2, y2 in MOBILI.get(n, []):
-            for _ in range(max(3, (x2 - x1) * (y2 - y1) // 2500)):
-                px, py = rng.uniform(x1, x2) * s, rng.uniform(y1, y2) * s
-                ang = rng.uniform(-0.9, 0.9) + (np.pi / 2 if rng.random() < 0.5 else 0)
-                lun = rng.uniform(25, 80) * s
-                d.line([(px - np.cos(ang) * lun, py - np.sin(ang) * lun), (px + np.cos(ang) * lun, py + np.sin(ang) * lun)], fill=int(rng.uniform(90, 170)), width=S(rng.uniform(3, 7)))
-        pg = np.array(pieghe.filter(ImageFilter.GaussianBlur(S(4)))) / 255.0
-        telo *= (1 - 0.28 * pg)[:, :, None]
-        luci = np.array(pieghe.transform(pieghe.size, Image.AFFINE, (1, 0, S(3), 0, 1, S(3))).filter(ImageFilter.GaussianBlur(S(3)))) / 255.0
-        telo += (18 * luci * (1 - pg))[:, :, None]
-        bordo = f - np.array(forma.filter(ImageFilter.GaussianBlur(S(7)))) / 255.0
-        telo *= (1 - 0.35 * np.clip(bordo, 0, 1) * 2)[:, :, None]
-        telo += rng.normal(0, 5, (h, w))[:, :, None]
-        polvere = rng.random((h, w)) < 0.004 / (s * s)
-        telo[polvere] *= 0.75
-        base = base * (1 - f[:, :, None]) + telo * f[:, :, None]
-    out = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8)).convert("RGBA")
-    out.putalpha(sfondo.split()[3])
-    return out
-
-
-# Nomi dei file ad alta risoluzione esportati da Canva
+# Nomi dei file ad alta risoluzione esportati da Canva: "... sfondo", "... ostacoli" e, dove
+# ci sono buchi nel pavimento, "... vuoto".
 FILE_HD = {
     0: "Exit sfondo", 1: "PT_ ingresso sfondo", 2: "PT_ vestibolo sfondo", 3: "PT_ pranzo sfondo",
     4: "PT_ corridoio 1 sfondo", 5: "PT_ bagno sfondo", 6: "PT_ biblio sfondo", 7: "PT_ corridoio 2 sfondo",
@@ -247,9 +177,13 @@ def main():
     for n, (sf, ost, porte, vuoto) in STANZE.items():
         ostacoli = sulla_scena("Ostacoli", ost)
         if n != 21:
-            basso = sulla_scena("Sfondo", sf)
-            sfondo = alta_risoluzione(FILE_HD.get(n, ""), basso) or basso
-            salva_jpg(arreda(n, sfondo, ostacoli), f"stanze/{n}.jpg")
+            livelli = [("sfondo", sulla_scena("Sfondo", sf))]
+            if vuoto:
+                livelli.append(("vuoto", sulla_scena("Vuoto", vuoto)))
+            livelli.append(("ostacoli", ostacoli))
+            basso = [im for _, im in livelli]
+            hd = [alta_risoluzione(FILE_HD[n].replace(" sfondo", " " + tipo), im) for tipo, im in livelli]
+            salva_jpg(componi(hd if all(hd) else basso), f"stanze/{n}.jpg")
         s = {"ostacoli": maschera(ostacoli), "porte": {}}
         for i, p in enumerate(porte):
             if p:
@@ -353,7 +287,6 @@ def main():
         mp3(s["md5ext"], f"frammenti/{n:02d}.mp3", mono=False, kbps=128, filtro="loudnorm=I=-18:TP=-1.5")
     sprite_alta_risoluzione()
     if CARTELLA_HD:
-        stanza_camino(dati)
         armadio_segreto(dati)
         with open(os.path.join(RADICE, "js", "maschere.js"), "w") as f:
             f.write("// Generato da strumenti/estrai.py: maschere di collisione, porte e posizioni ricavate dal progetto Scratch.\n")
@@ -375,150 +308,6 @@ def sprite_alta_risoluzione():
         attuale = Image.open(os.path.join(IMG, file + ".png"))
         pezzo = hd.crop(hd.getbbox()).resize((attuale.width * LATO_HD, attuale.height * LATO_HD), Image.LANCZOS)
         salva_png(pezzo, file + ".png")
-
-
-# ------------------------------------------------------------------
-# La stanza segreta (22), il seminterrato col camino dietro l'armadio dello studio.
-# Nel progetto Scratch non c'è: muri, casse, porte e pianoforte vengono dai file Canva,
-# il pavimento di pietra e il camino si disegnano qui.
-# ------------------------------------------------------------------
-CAMINO = ["A_ muro semint camino", "A_ porte semint camino", "A_ ostacoli semint camino", "A_ piano semint camino"]
-FOCOLARE = (548, 40, 712, 126)  # il camino nel muro in alto (pixel della stanza 960x720)
-
-
-def pavimento_di_pietra(w, h, s, rng):
-    """Lastre di pietra irregolari, a righe sfalsate, con fughe scure."""
-    from PIL import ImageDraw, ImageFilter
-    base = np.zeros((h, w, 3))
-    fughe = Image.new("L", (w, h), 0)
-    d = ImageDraw.Draw(fughe)
-    y = 0
-    while y < h:
-        alt = rng.uniform(44, 62) * s
-        x = -rng.uniform(0, 60) * s
-        while x < w:
-            lar = rng.uniform(55, 110) * s
-            c = np.array([84, 77, 70]) * rng.uniform(0.8, 1.12) + rng.normal(0, 1.5, 3)
-            x1, y1, x2, y2 = int(max(x, 0)), int(y), int(min(x + lar, w)), int(min(y + alt, h))
-            base[y1:y2, x1:x2] = c
-            d.rectangle([x, y, x + lar, y + alt], outline=255, width=max(2, round(3 * s)))
-            x += lar
-        y += alt
-    # macchie e consumo della pietra
-    grana = Image.fromarray((rng.random((h // 8, w // 8)) * 255).astype(np.uint8)).resize((w, h), Image.BICUBIC)
-    grana = np.array(grana.filter(ImageFilter.GaussianBlur(6 * s))) / 255.0
-    base *= (0.82 + 0.3 * grana)[:, :, None]
-    base += rng.normal(0, 6, (h, w))[:, :, None]
-    f = np.array(fughe.filter(ImageFilter.GaussianBlur(1.2 * s))) / 255.0
-    base = base * (1 - 0.75 * f[:, :, None]) + np.array([24, 20, 18]) * 0.75 * f[:, :, None]
-    # bordo chiaro in alto a sinistra di ogni lastra
-    luce = np.array(fughe.transform(fughe.size, Image.AFFINE, (1, 0, -3 * s, 0, 1, -3 * s)).filter(ImageFilter.GaussianBlur(2 * s))) / 255.0
-    base += (14 * luce * (1 - f))[:, :, None]
-    return base
-
-
-def disegna_camino(tela, s, rng):
-    from PIL import ImageDraw, ImageFilter
-    S = lambda v: round(v * s)
-    x1, y1, x2, y2 = FOCOLARE
-    # ombra del camino sul pavimento
-    om = Image.new("L", tela.size, 0)
-    ImageDraw.Draw(om).rectangle([S(x1 - 6), S(y1), S(x2 + 10), S(y2 + 14)], fill=170)
-    nero = Image.new("RGBA", tela.size, (0, 0, 0, 255))
-    nero.putalpha(om.filter(ImageFilter.GaussianBlur(S(12))))
-    tela.alpha_composite(nero)
-    d = ImageDraw.Draw(tela)
-    # cornice di pietra: blocchi chiari
-    d.rectangle([S(x1), S(y1), S(x2), S(y2)], fill=(122, 112, 100, 255), outline=(52, 44, 38, 255), width=S(3))
-    for i, yy in enumerate(range(y1, y2, 17)):
-        off = 0 if i % 2 else 14
-        for xx in range(x1 - off, x2, 28):
-            c = tuple(int(v * rng.uniform(0.85, 1.1)) for v in (128, 117, 104)) + (255,)
-            if min(xx + 28, x2) - max(xx, x1) < 8 or min(yy + 17, y2) - yy < 8:
-                continue
-            d.rectangle([S(max(xx, x1) + 2), S(yy + 2), S(min(xx + 28, x2) - 2), S(min(yy + 17, y2) - 2)], fill=c)
-    # mensola in alto
-    d.rectangle([S(x1 - 8), S(y1 - 2), S(x2 + 8), S(y1 + 12)], fill=(92, 62, 40, 255), outline=(48, 30, 18, 255), width=S(2))
-    # bocca del camino, nera di fuliggine
-    bx1, by1, bx2, by2 = x1 + 26, y1 + 16, x2 - 26, y2 - 12
-    d.rectangle([S(bx1), S(by1), S(bx2), S(by2)], fill=(18, 12, 10, 255))
-    # ceppi e braci (la fiamma si anima nel gioco)
-    for (ax, ay, bx, by) in [(bx1 + 12, by2 - 14, bx2 - 18, by2 - 22), (bx1 + 22, by2 - 24, bx2 - 10, by2 - 12)]:
-        d.line([S(ax), S(ay), S(bx), S(by)], fill=(70, 42, 24, 255), width=S(9))
-    brace = Image.new("RGBA", tela.size, (0, 0, 0, 0))
-    db = ImageDraw.Draw(brace)
-    db.ellipse([S(bx1 + 4), S(by2 - 30), S(bx2 - 4), S(by2 + 4)], fill=(255, 110, 30, 200))
-    for _ in range(22):
-        px, py = rng.uniform(bx1 + 10, bx2 - 10), rng.uniform(by2 - 22, by2 - 6)
-        r = rng.uniform(1.5, 3)
-        db.ellipse([S(px - r), S(py - r), S(px + r), S(py + r)], fill=(255, int(rng.uniform(150, 220)), 70, 255))
-    tela.alpha_composite(brace.filter(ImageFilter.GaussianBlur(S(2.5))))
-    d = ImageDraw.Draw(tela)
-    # gradino del focolare
-    d.rectangle([S(x1 - 4), S(y2 - 8), S(x2 + 4), S(y2)], fill=(104, 96, 88, 255), outline=(52, 44, 38, 255), width=S(2))
-
-
-def riempi(libero, da):
-    """Le celle libere raggiungibili dal punto da (riga, colonna)."""
-    fatto = np.zeros(libero.shape, bool)
-    fatto[da] = True
-    while True:
-        nuovo = fatto.copy()
-        nuovo[1:] |= fatto[:-1]; nuovo[:-1] |= fatto[1:]
-        nuovo[:, 1:] |= fatto[:, :-1]; nuovo[:, :-1] |= fatto[:, 1:]
-        nuovo &= libero
-        if (nuovo == fatto).all():
-            return fatto
-        fatto = nuovo
-
-
-def stanza_camino(dati):
-    from PIL import ImageDraw, ImageFilter
-    pezzi = [os.path.join(CARTELLA_HD, f + ".png") for f in CAMINO]
-    if not all(os.path.exists(p) for p in pezzi):
-        return
-    dim = (960 * LATO_HD, 720 * LATO_HD)
-    s = LATO_HD
-    rng = np.random.default_rng(22)
-    muro, porte, casse, piano = [Image.open(p).convert("RGBA").resize(dim, Image.LANCZOS) for p in pezzi]
-    # pavimento, scaldato dalla luce del camino e più scuro negli angoli
-    w, h = dim
-    base = pavimento_di_pietra(w, h, s, rng)
-    yy, xx = np.mgrid[0:h, 0:w]
-    fx, fy = (FOCOLARE[0] + FOCOLARE[2]) / 2 * s, FOCOLARE[3] * s
-    caldo = np.exp(-(((xx - fx) / (330 * s)) ** 2 + ((yy - fy) / (260 * s)) ** 2))
-    base = base * (0.62 + 0.5 * caldo)[:, :, None] + np.array([60, 26, 0]) * caldo[:, :, None]
-    tela = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8)).convert("RGBA")
-    # ombre di muri, casse e pianoforte
-    for pezzo, dist in [(muro, 10), (casse, 8), (piano, 8)]:
-        a = pezzo.split()[3].transform(dim, Image.AFFINE, (1, 0, -dist * s, 0, 1, -dist * s)).filter(ImageFilter.GaussianBlur(9 * s))
-        nero = Image.new("RGBA", dim, (0, 0, 0, 255))
-        nero.putalpha(a.point(lambda v: v * 0.6))
-        tela.alpha_composite(nero)
-    for pezzo in (casse, piano, porte, muro):
-        tela.alpha_composite(pezzo)
-    disegna_camino(tela, s, rng)
-    # fuori dai muri resta nero, come nelle altre stanze
-    a = lambda im: np.array(im.resize((960, 720), Image.BILINEAR).split()[3]) > 40
-    pieno_muro, pieno_porte = a(muro), a(porte)
-    dentro = riempi(~(pieno_muro | pieno_porte), (360, 480))
-    casa = Image.fromarray((dentro * 255).astype(np.uint8)).resize(dim, Image.NEAREST)
-    casa = np.maximum(np.array(casa), np.maximum(np.array(muro.split()[3]), np.array(porte.split()[3])))
-    tela.putalpha(Image.fromarray(casa))
-    salva_jpg(tela, "stanze/22.jpg")
-
-    # maschere a 960x720: fuori dalla stanza, muri, casse, pianoforte e camino sono ostacoli
-    x1, y1, x2, y2 = FOCOLARE
-    ost = ~(dentro | pieno_porte) | a(casse) | a(piano)
-    ost[y1:y2, x1 - 8:x2 + 8] = True
-    ostacoli = Image.new("RGBA", (960, 720))
-    ostacoli.putalpha(Image.fromarray((ost * 255).astype(np.uint8)))
-    st = {"ostacoli": maschera(ostacoli), "porte": {}}
-    ys, xs = np.nonzero(pieno_porte)
-    for n, lato in [(1, xs < 480), (2, xs >= 480)]:
-        st["porte"][n] = [int(xs[lato].min()), int(ys[lato].min()), int(xs[lato].max() + 1), int(ys[lato].max() + 1)]
-    st["camino"] = list(FOCOLARE)
-    dati["stanze"][22] = st
 
 
 def armadio_segreto(dati):

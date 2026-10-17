@@ -60,7 +60,7 @@
     });
   }
   const pronte = [];
-  for (const n of Object.keys(STANZE)) if (n !== "21") pronte.push(carica("stanza" + n, `assets/img/stanze/${n}.jpg?v=2`));
+  for (const n of Object.keys(STANZE)) if (n !== "21") pronte.push(carica("stanza" + n, `assets/img/stanze/${n}.jpg?v=3`));
   img.stanza21 = img.stanza0;
   for (const n of ["copertina", "casa", "casa-fantasmi"]) pronte.push(carica(n, `assets/img/${n}.jpg`));
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
@@ -651,8 +651,8 @@
       { x: 544, y: 222, ang: -26, base: -26, img: "gargoyle-1", sveglio: false },
       { x: 544, y: 502, ang: -164, base: -164, img: "gargoyle-2", sveglio: false },
     ] : [];
-    // tornando dalla stanza segreta l'armadio è già spostato
-    if (id === 8 && prima === 22) { g.eventi.add("armadioAperto"); g.armadio = 1; }
+    // tornando dal seminterrato l'armadio è già spostato
+    if (id === 8 && prima === 18) { g.eventi.add("armadioAperto"); g.armadio = 1; }
     const nuova = !g.visitate.has(id);
     g.visitate.add(id);
     if (id !== 0 && id !== 21 && STANZE[prima].piano !== STANZE[id].piano || nuova || id === 1) {
@@ -686,11 +686,7 @@
       suona("caduta");
       setTimeout(() => pensiero("torciaCaduta"), 1100);
     }
-    if (id === 22 && tuttiIPianoforti() && !ha("pallone")) setTimeout(() => pensiero("palloneVisto"), 500);
-    else if (id === 22 && !g.eventi.has("stanzaSegreta")) {
-      g.eventi.add("stanzaSegreta");
-      setTimeout(() => pensiero("stanzaSegreta"), 600);
-    }
+    if (id === 20 && tuttiIPianoforti() && !ha("pallone")) setTimeout(() => pensiero("palloneVisto"), 500);
     if (id === 21) setTimeout(() => pensiero("Ce l'ho fatta! Ora raggiungo i miei amici."), 500);
     const pf = PIANOFORTI.find((p) => p.stanza === id);
     if (pf && nuova && !g.pianiFatti.has(id)) setTimeout(() => { if (g.stanza === id && stato === "gioco") pensiero("pianoforteVicino"); }, 1400);
@@ -760,14 +756,13 @@
   // ---------------------------------------------------------------
   function soddisfa(req) {
     if (req === "piano19") return g.pianiFatti.has(19);
-    if (req === "armadio") return g.armadio >= 1;
     return ha(req);
   }
-  // una porta segreta non si vede finché non si apre
-  const portaNascosta = (p) => p.segreta && !soddisfa(p.serve);
+  // la porta segreta non si vede finché l'armadio non si è spostato
+  const portaNascosta = (p) => p.segreta && g.armadio < 1;
 
   // L'armadio dello studio: con la chiave del bagno scivola lungo il muro
-  // e scopre il passaggio per la stanza del camino.
+  // e scopre il passaggio per il seminterrato.
   const CORSA_ARMADIO = 170;
   function armadioBox() {
     const [x, y] = MASCHERE.posizioni.armadio;
@@ -1164,10 +1159,8 @@
       disegnaImg("torcia", ox, oy, 1 + g.torciaCade * 1.2, g.torciaCade * 5);
     }
 
-    // studio: il passaggio segreto e l'armadio
+    // studio: l'armadio che nasconde il passaggio
     if (id === 8) disegnaArmadio();
-    // il fuoco del camino
-    if (dati.camino) disegnaFuoco(dati.camino, t);
 
     // fuori: amici e gargoyle
     if (id === 0 || id === 21) {
@@ -1239,52 +1232,13 @@
   }
 
   function disegnaArmadio() {
-    const [x1, y1, x2, y2] = MASCHERE.stanze[8].porte[2];
-    if (g.armadio > 0) {
-      // la scala che scende, nascosta dietro l'armadio
-      ctx.save();
-      ctx.fillStyle = "#0b0706";
-      ctx.fillRect(x1 - 12, y1, x2 - x1 + 12, y2 - y1);
-      ctx.strokeStyle = "rgba(150,120,90,0.55)";
-      ctx.lineWidth = 3;
-      for (let i = 0; i < 6; i++) {
-        const x = x1 - 8 + i * ((x2 - x1 + 4) / 6);
-        ctx.globalAlpha = 1 - i / 7;
-        ctx.beginPath(); ctx.moveTo(x, y1 + 6); ctx.lineTo(x, y2 - 6); ctx.stroke();
-      }
-      ctx.restore();
-    }
-    const [ax, ay, bx, by] = armadioBox();
+    const [ax, ay] = armadioBox();
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,0.75)";
     ctx.shadowBlur = 14;
     ctx.shadowOffsetX = -6;
     ctx.shadowOffsetY = 6;
     disegnaImg("armadio", ax, ay, 1, 0, 1, 0, 0);
-    ctx.restore();
-  }
-
-  function disegnaFuoco([x1, y1, x2, y2], t) {
-    const cx = (x1 + x2) / 2;
-    const fy = y2 - 22;
-    const tremola = Math.sin(t * 11) * 0.06 + Math.sin(t * 6.7) * 0.05 + Math.sin(t * 17.3) * 0.03;
-    luce(cx, y2 + 40, 360 * (1 + tremola), "rgba(255,140,50,A)", 0.22 + tremola);
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    for (let i = 0; i < 5; i++) {
-      const x = cx - 36 + i * 18 + Math.sin(t * 3 + i) * 3;
-      const h = 26 + 10 * Math.sin(t * (7 + i) + i * 2) + 6 * Math.sin(t * 13 + i);
-      const gr = ctx.createLinearGradient(x, fy + 6, x, fy - h);
-      gr.addColorStop(0, "rgba(255,230,140,0.9)");
-      gr.addColorStop(0.5, "rgba(255,130,30,0.65)");
-      gr.addColorStop(1, "rgba(200,40,0,0)");
-      ctx.fillStyle = gr;
-      ctx.beginPath();
-      ctx.moveTo(x - 10, fy + 6);
-      ctx.quadraticCurveTo(x - 8, fy - h * 0.5, x + Math.sin(t * 9 + i) * 4, fy - h);
-      ctx.quadraticCurveTo(x + 8, fy - h * 0.5, x + 10, fy + 6);
-      ctx.fill();
-    }
     ctx.restore();
   }
 
@@ -1668,7 +1622,7 @@
     aggiornaAtmosfera();
     const f = STANZE[id].fantasma;
     if (tuttiIPianoforti()) {
-      if (g.stanza === 22) { setTimeout(() => { suona("magia"); pensiero("palloneVisto"); }, 400); }
+      if (g.stanza === 20) { setTimeout(() => { suona("magia"); pensiero("palloneVisto"); }, 400); }
       else setTimeout(() => { suona("bambino", 0.6); pensiero("tuttiIPianoforti"); }, 400);
     } else if (f && f.quando === "dopoPiano") {
       setTimeout(() => pensiero(TESTI_PIANO.fantasmaSveglio), 300);

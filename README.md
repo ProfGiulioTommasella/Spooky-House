@@ -7,7 +7,7 @@ tra Barocco e Classicismo.
 > abbandonata. Un tiro troppo forte e il pallone sfonda una finestra! Dicono che nella casa
 > abitino i fantasmi di quattro grandi compositori...
 
-La casa si vede dall'alto ed è divisa in 21 stanze su quattro livelli: piano terra, primo piano,
+La casa si vede dall'alto ed è divisa in 20 stanze su quattro livelli: piano terra, primo piano,
 torre e seminterrato. Appena si entra la porta si chiude alle spalle e i fantasmi dei compositori
 spiegano la sfida: in casa ci sono **otto pianoforti** e il pallone torna solo dopo averli fatti
 suonare tutti. Ogni pianoforte fa ascoltare **due frammenti**: per ognuno si sceglie chi l'ha scritto
@@ -17,15 +17,14 @@ Dopo ogni risposta compare il cartiglio con il titolo del brano e una breve sche
 Per arrivare a tutti i pianoforti bisogna:
 
 - nella cameretta al primo piano cade una **torcia**: senza, le stanze buie non si attraversano;
-- trovare la **chiave piccola** nel bagno: apre l'armadio dello studio, che nasconde il
-  passaggio per la **stanza segreta del camino**;
+- trovare la **chiave piccola** nel bagno: sposta l'armadio dello studio, che nasconde il
+  **passaggio segreto** per il seminterrato;
 - prendere la **chiave della torre** e scappare dalle **armature** che si svegliano
-  (se ti prendono, la chiave torna al suo posto): dalla stanza del camino apre la porta
-  per il resto del seminterrato;
+  (se ti prendono, la chiave torna al suo posto): apre il passaggio segreto;
 - schivare i **fantasmi** e non cadere nei **buchi** del pavimento (si torna all'ingresso della stanza).
 
 Nelle stanze con un pianoforte il fantasma si sveglia solo dopo averlo suonato.
-Quando tutti i pianoforti hanno suonato, il pallone compare nella stanza del camino: lo si prende,
+Quando tutti i pianoforti hanno suonato, il pallone compare nello scantinato: lo si prende,
 si corre all'uscita nell'ingresso e si raggiungono gli amici in giardino.
 Il finale dipende dai frammenti riconosciuti (16, 13-15, 9-12, 5-8, 0-4) e mostra l'elenco
 dei 16 brani, che si possono riascoltare.
@@ -69,18 +68,17 @@ secondi di ascolto si può già rispondere.
 Stanze, porte, oggetti e percorsi dei fantasmi sono in [`js/stanze.js`](js/stanze.js).
 
 Per provare una stanza si apre `index.html#stanza=8` (si parte lì con tutti gli oggetti;
-`#stanza=22&tutti` anche con tutti i pianoforti suonati, `#stanza=17&vuoto` senza oggetti).
+`#stanza=20&tutti` anche con tutti i pianoforti suonati, `#stanza=17&vuoto` senza oggetti).
 
 ## Cosa cambia rispetto al progetto Scratch
 
 - Il pallone compare appena tutti i pianoforti hanno suonato, in qualunque ordine
   (nello Scratch si poteva restare bloccati).
-- La stanza segreta del camino, dietro l'armadio dello studio, che si apre con la chiave del
-  bagno: c'era solo nei file Canva, il pavimento di pietra e il fuoco sono nuovi.
+- La chiave del bagno ora serve: sposta l'armadio dello studio e scopre il passaggio segreto.
 - La torcia è davvero necessaria per attraversare il corridoio buio; nelle stanze buie si vede
   solo il cono di luce.
-- I mobili che nello Scratch erano ostacoli invisibili ora sono disegnati, coperti da teli
-  bianchi, e il pavimento è più scuro dove non si può camminare.
+- Le stanze sono ricomposte dai livelli originali di Canva in alta risoluzione
+  (sfondo, vuoto, ostacoli), con muri e mobili ben visibili.
 - Mappa del piano, zaino, contatore dei brani riconosciuti, tempo e spaventi.
 - Al pianoforte ogni risposta mostra subito titolo, opera e scheda del compositore;
   nel finale i 16 brani si possono riascoltare.
@@ -102,5 +100,5 @@ assets/img/           sfondi delle stanze (da Canva, 1920x1440), personaggi e ri
 assets/audio/         effetti sonori e i 16 frammenti dal progetto Scratch
 strumenti/estrai.py   rigenera assets e js/maschere.js dal file .sb3 (Pillow, numpy, ffmpeg);
                       con la cartella degli sfondi Canva come secondo argomento, le stanze escono a 1920x1440
-                      e si generano anche la stanza del camino e l'armadio dello studio
+                      (livelli sfondo, vuoto e ostacoli) e si genera anche l'armadio dello studio
 ```

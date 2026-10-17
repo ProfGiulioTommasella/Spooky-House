@@ -86,8 +86,8 @@ const STANZE = {
     nome: "Lo studio", piano: "terra", buio: true,
     porte: [
       { p: 1, verso: 7, arrivo: [190, 2] },
-      // dietro l'armadio: si apre con la chiave del bagno (vedi gioco.js, "armadio")
-      { p: 2, verso: 22, arrivo: [-172, 17], serve: "armadio", segreta: true, scale: true },
+      // nascosta dietro l'armadio, che si sposta con la chiave del bagno (vedi gioco.js, "armadio")
+      { p: 2, verso: 18, arrivo: [-185, 90], serve: "chiave-torre", pensiero: "serveChiave", segreta: true, scale: true },
     ],
     fantasma: { quando: "dopoPiano", giro: [[180, 100], [60, 100], [60, 60], [180, 60]], tempo: [1.2, 1.8] },
   },
@@ -157,7 +157,7 @@ const STANZE = {
   18: {
     nome: "Il corridoio del seminterrato", piano: "seminterrato", buio: true,
     porte: [
-      { p: 1, verso: 22, arrivo: [165, 103] },
+      { p: 1, verso: 8, arrivo: [159, -61], scale: true },
       { p: 2, verso: 19, arrivo: [-175, 94] },
     ],
     fantasma: { quando: "sempre", giro: [[182, 15], [12, -47]], tempo: [1.5, 1.5] },
@@ -173,18 +173,8 @@ const STANZE = {
   20: {
     nome: "Lo scantinato", piano: "seminterrato", buio: true,
     porte: [{ p: 1, verso: 19, arrivo: [178, -103] }],
-    fantasma: { quando: "dopoPiano", giro: [[-46, -94], [-46, 45], [-172, 45], [-120, -94]], tempo: [1, 2.5] },
-  },
-  // La stanza segreta: non c'è nel progetto Scratch, si disegna dai file Canva
-  // (strumenti/estrai.py). Il pianoforte vicino al muro è solo un ostacolo.
-  22: {
-    nome: "La stanza del camino", piano: "seminterrato",
-    porte: [
-      { p: 1, verso: 8, arrivo: [170, -75], scale: true },
-      { p: 2, verso: 18, arrivo: [-185, 90], serve: "chiave-torre", pensiero: "serveChiave" },
-    ],
     oggetto: "pallone",
-    fantasma: { quando: "sempre", giro: [[-100, -110], [100, -110], [100, 20], [-60, 40]], tempo: [1.8, 2.6] },
+    fantasma: { quando: "dopoPiano", giro: [[-46, -94], [-46, 45], [-172, 45], [-120, -94]], tempo: [1, 2.5] },
   },
   21: {
     nome: "Il giardino", piano: "fuori",
@@ -195,7 +185,7 @@ const STANZE = {
 // Dove compaiono gli oggetti (coordinate Scratch); se manca, la posizione
 // viene da js/maschere.js.
 const POSIZIONI_OGGETTI = {
-  pallone: [40, -90],
+  pallone: [150, -40],
 };
 
 // Pianta schematica di ogni piano per la mappa a lato: [colonna, riga, larghezza, altezza].
@@ -203,6 +193,6 @@ const PIANTA = {
   terra: { 1: [1, 1, 1, 1], 2: [1, 2, 1, 1], 3: [2, 2, 1, 1], 4: [3, 2, 1, 1], 5: [4, 2, 1, 1], 6: [1, 0, 1, 1], 7: [2, 0, 1, 1], 8: [3, 0, 1, 1] },
   primo: { 9: [0, 1, 1, 1], 10: [1, 1, 1, 1], 11: [2, 1, 1, 1], 12: [2, 2, 1, 1], 13: [3, 0.5, 1, 1], 14: [3, 1.5, 1, 1] },
   torre: { 15: [1, 0, 1, 1], 16: [1, 1, 1, 1], 17: [2, 1, 1, 1] },
-  seminterrato: { 22: [0, 1, 1, 1], 18: [1, 1, 1, 1], 19: [2, 1, 1, 1], 20: [3, 1, 1, 1] },
+  seminterrato: { 18: [1, 1, 1, 1], 19: [2, 1, 1, 1], 20: [3, 1, 1, 1] },
   fuori: { 0: [1, 1, 2, 1], 21: [1, 1, 2, 1] },
 };
