@@ -114,53 +114,109 @@
   // ---------------------------------------------------------------
   const NOMI_SUONI = ["passi", "caduta", "porta", "chiuso", "fantasma", "risata", "bambino", "magia", "raccogli", "giusto",
     "sbagliato", "ingranaggi", "armatura", "schiocco", "pietra", "ringhio", "calcio", "vetri"];
-  const suoni = {};
-  NOMI_SUONI.forEach((n) => {
-    const a = new Audio(`assets/audio/${n}.mp3`);
-    a.preload = "auto";
-    suoni[n] = a;
-  });
   const leggi = (c) => { try { return localStorage.getItem(c) === "1"; } catch (e) { return false; } };
   const scrivi = (c, v) => { try { localStorage.setItem(c, v ? "1" : "0"); } catch (e) { /* niente */ } };
   let mutoEffetti = leggi("sh-muto-effetti");
   let mutoAtmosfera = leggi("sh-muto-atmosfera");
-  let audioSbloccato = false;
 
+  // Gli effetti passano dalla Web Audio API (più affidabile su tablet e telefoni);
+  // se la pagina è aperta da file, o il browser non la supporta, si usano gli <audio>.
+  let actx = null;
+  let volumeEffetti = null;
+  function contesto() {
+    if (actx) return actx;
+    try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+    volumeEffetti = actx.createGain();
+    volumeEffetti.gain.value = mutoEffetti ? 0 : 1;
+    volumeEffetti.connect(actx.destination);
+    return actx;
+  }
+  // su iPhone e iPad l'audio si sente anche con il tasto silenzioso attivo
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) { /* niente */ }
+
+  const buffer = {};
+  const suoni = {};
+  const inCorso = {};
+  function preparaSuoni() {
+    const c = contesto();
+    NOMI_SUONI.forEach((n) => {
+      const file = `assets/audio/${n}.mp3`;
+      const riserva = () => {
+        if (suoni[n]) return;
+        const a = new Audio(file);
+        a.preload = "auto";
+        suoni[n] = a;
+      };
+      if (!c || location.protocol === "file:" || !window.fetch) { riserva(); return; }
+      fetch(file)
+        .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then((dati) => new Promise((ok, ko) => { const p = c.decodeAudioData(dati, ok, ko); if (p && p.then) p.then(ok, ko); }))
+        .then((b) => { buffer[n] = b; })
+        .catch(riserva);
+    });
+  }
+
+  let audioSbloccato = false;
+  // da chiamare dentro un clic o un tocco: i browser fanno partire l'audio solo così
   function sbloccaAudio() {
+    const c = contesto();
+    if (c && c.state !== "running") { try { c.resume(); } catch (e) { /* niente */ } }
     if (audioSbloccato) return;
     audioSbloccato = true;
-    Object.values(suoni).forEach((a) => {
-      a.muted = true;
-      const p = a.play();
-      const ferma = () => { a.pause(); a.currentTime = 0; a.muted = mutoEffetti; };
-      if (p && p.then) p.then(ferma).catch(() => { a.muted = mutoEffetti; });
-      else ferma();
-    });
+    if (c) {
+      // un suono muto di un istante sblocca l'audio su iPhone e iPad
+      try {
+        const s = c.createBufferSource();
+        s.buffer = c.createBuffer(1, 1, 22050);
+        s.connect(c.destination);
+        s.start(0);
+      } catch (e) { /* niente */ }
+    }
     avviaAtmosfera();
   }
+  preparaSuoni();
+  ["pointerdown", "keydown", "touchend"].forEach((ev) => document.addEventListener(ev, sbloccaAudio, true));
+
   function suona(nome, volume = 1) {
+    if (mutoEffetti) return;
+    if (buffer[nome] && actx) {
+      try {
+        if (actx.state !== "running") actx.resume();
+        zittisci(nome);
+        const s = actx.createBufferSource();
+        s.buffer = buffer[nome];
+        const v = actx.createGain();
+        v.gain.value = volume;
+        s.connect(v).connect(volumeEffetti);
+        s.onended = () => { if (inCorso[nome] === s) delete inCorso[nome]; };
+        s.start();
+        inCorso[nome] = s;
+      } catch (e) { /* audio non disponibile */ }
+      return;
+    }
+    if (!suoni[nome]) {
+      // il suono non è ancora pronto per la Web Audio: si usa un <audio>
+      suoni[nome] = new Audio(`assets/audio/${nome}.mp3`);
+    }
     const a = suoni[nome];
-    if (!a) return;
     try {
       a.pause();
       a.currentTime = 0;
       a.volume = volume;
-      a.muted = mutoEffetti;
       const p = a.play();
       if (p && p.catch) p.catch(() => {});
     } catch (e) { /* audio non disponibile */ }
   }
   function zittisci(nome) {
+    if (inCorso[nome]) { try { inCorso[nome].stop(); } catch (e) { /* niente */ } delete inCorso[nome]; }
     const a = suoni[nome];
     if (a) { a.pause(); a.currentTime = 0; }
   }
 
   // Rumori di fondo della casa: vento e un bordone grave, generati dal browser
-  let actx = null;
   let volumeFondo = null;
   function avviaAtmosfera() {
-    if (actx) return;
-    try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+    if (volumeFondo || !contesto()) return;
     volumeFondo = actx.createGain();
     volumeFondo.gain.value = 0;
     volumeFondo.connect(actx.destination);
@@ -216,6 +272,8 @@
     $("btn-audio").textContent = mutoEffetti ? "🔇" : "🔊";
     $("btn-audio").title = mutoEffetti ? "Accendi gli effetti sonori" : "Spegni gli effetti sonori";
     Object.values(suoni).forEach((a) => { a.muted = mutoEffetti; });
+    if (volumeEffetti) volumeEffetti.gain.value = mutoEffetti ? 0 : 1;
+    if (mutoEffetti) NOMI_SUONI.forEach(zittisci);
     aggiornaAtmosfera();
   }
   $("btn-atmosfera").addEventListener("click", () => {
