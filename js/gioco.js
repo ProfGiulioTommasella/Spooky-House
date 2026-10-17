@@ -396,6 +396,8 @@
   // ---------------------------------------------------------------
   const tasti = new Set();
   const puntatore = { attivo: false, x: 0, y: 0, id: null };
+  // dove sta il mouse (anche senza clic): il ragazzo guarda da quella parte
+  const mira = { attivo: false, x: 0, y: 0 };
   window.addEventListener("keydown", (e) => {
     tasti.add(e.key.toLowerCase());
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(e.key.toLowerCase())) e.preventDefault();
@@ -419,12 +421,17 @@
     try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* niente */ }
   });
   canvas.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "mouse") {
+      [mira.x, mira.y] = nellaStanza(e);
+      mira.attivo = mira.x <= RW;
+    }
     if (!puntatore.attivo || e.pointerId !== puntatore.id) return;
     [puntatore.x, puntatore.y] = nellaStanza(e);
   });
   const lascia = (e) => { if (e.pointerId === puntatore.id) puntatore.attivo = false; };
   canvas.addEventListener("pointerup", lascia);
   canvas.addEventListener("pointercancel", lascia);
+  canvas.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") mira.attivo = false; });
 
   // ---------------------------------------------------------------
   //  Pensieri, banner e voci
@@ -727,10 +734,19 @@
     }
     const l = Math.hypot(vx, vy);
     g.inMoto = false;
-    if (!l || g.caduta > 0 || g.transizione) return;
+    const fermo = !l || g.caduta > 0 || g.transizione;
+    // lo sguardo segue il mouse; senza mouse, la direzione in cui si cammina
+    let guarda = null;
+    if (mira.attivo && dist(mira.x, mira.y, g.x, g.y) > 4) guarda = Math.atan2(mira.y - g.y, mira.x - g.x);
+    else if (!fermo) guarda = Math.atan2(vy, vx);
+    if (guarda !== null) {
+      const diff = Math.atan2(Math.sin(guarda - g.ang), Math.cos(guarda - g.ang));
+      g.ang += diff * Math.min(1, dt * 14);
+    }
+    if (fermo) return;
     vx /= l;
     vy /= l;
-    g.ang = Math.atan2(vy, vx);
+    const dir = Math.atan2(vy, vx);
     const nx = g.x + vx * VELOCITA * dt;
     const ny = g.y + vy * VELOCITA * dt;
     const x0 = g.x;
@@ -740,8 +756,8 @@
     else if (vy && libero(g.x, ny)) g.y = ny;
     else {
       // scivola lungo i muri obliqui
-      const a1 = g.ang + 0.7;
-      const a2 = g.ang - 0.7;
+      const a1 = dir + 0.7;
+      const a2 = dir - 0.7;
       for (const a of [a1, a2]) {
         const sx = g.x + Math.cos(a) * VELOCITA * dt * 0.7;
         const sy = g.y + Math.sin(a) * VELOCITA * dt * 0.7;
@@ -1281,8 +1297,12 @@
     };
     const tremola = Math.sin(t * 13) * 5 + Math.sin(t * 7.3) * 4;
     if (torcia) {
-      buca(g.x, g.y, 230 + tremola);
-      buca(g.x + Math.cos(g.ang) * 90, g.y + Math.sin(g.ang) * 90, 170 + tremola, 0.9);
+      // la luce è spostata in avanti: poca alle spalle, di più dove si guarda
+      const cx = Math.cos(g.ang);
+      const cy = Math.sin(g.ang);
+      buca(g.x - cx * 10, g.y - cy * 10, 120 + tremola * 0.6, 0.95);
+      buca(g.x + cx * 85, g.y + cy * 85, 150 + tremola, 0.95);
+      buca(g.x + cx * 165, g.y + cy * 165, 115 + tremola, 0.7);
     } else {
       buca(g.x, g.y, 90 + tremola * 0.5, 0.95);
     }
@@ -1291,7 +1311,7 @@
     const o = oggettoVisibile();
     if (o) { const [ox, oy] = posizioneOggetto(o); buca(ox, oy, 90, 0.8); }
     ctx.drawImage(buio, 0, 0, RW, RH);
-    if (torcia) luce(g.x, g.y, 230, "rgba(255,170,80,A)", 0.12);
+    if (torcia) luce(g.x + Math.cos(g.ang) * 80, g.y + Math.sin(g.ang) * 80, 180, "rgba(255,170,80,A)", 0.12);
   }
 
   function disegnaPorte(t) {
