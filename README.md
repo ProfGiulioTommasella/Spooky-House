@@ -16,7 +16,7 @@ Dopo ogni risposta compare il cartiglio con il titolo del brano e una breve sche
 
 Per arrivare a tutti i pianoforti bisogna:
 
-- nella cameretta al primo piano cade una **torcia**: senza, le stanze buie non si attraversano;
+- nella cameretta al primo piano cade una **torcia**: senza, nelle stanze buie si vede pochissimo;
 - trovare la **chiave piccola** nel bagno: sposta l'armadio dello studio, che nasconde il
   **passaggio segreto** per il seminterrato;
 - prendere la **chiave della torre** e scappare dalle **armature** che si svegliano
@@ -75,8 +75,7 @@ Per provare una stanza si apre `index.html#stanza=8` (si parte lì con tutti gli
 - Il pallone compare appena tutti i pianoforti hanno suonato, in qualunque ordine
   (nello Scratch si poteva restare bloccati).
 - La chiave del bagno ora serve: sposta l'armadio dello studio e scopre il passaggio segreto.
-- La torcia è davvero necessaria per attraversare il corridoio buio; nelle stanze buie si vede
-  solo il cono di luce.
+- Nelle stanze buie si vede solo il cono di luce della torcia (senza, un piccolo alone).
 - Le stanze sono ricomposte dai livelli originali di Canva in alta risoluzione
   (sfondo, vuoto, ostacoli), con muri e mobili ben visibili.
 - Mappa del piano, zaino, contatore dei brani riconosciuti, tempo e spaventi.

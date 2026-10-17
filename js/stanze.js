@@ -79,7 +79,7 @@ const STANZE = {
     nome: "Il corridoio buio", piano: "terra", buio: true,
     porte: [
       { p: 1, verso: 6, arrivo: [173, 14] },
-      { p: 2, verso: 8, arrivo: [-176, 9], serve: "torcia", pensiero: "troppoBuio" },
+      { p: 2, verso: 8, arrivo: [-176, 9] },
     ],
   },
   8: {
