@@ -1055,6 +1055,7 @@
 
   function disegna(t) {
     ctx.setTransform(k, 0, 0, k, 0, 0);
+    ctx.imageSmoothingQuality = "high";
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
     if (stato === "titolo" || stato === "intro") { disegnaIntro(t); return; }

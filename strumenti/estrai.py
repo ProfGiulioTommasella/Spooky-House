@@ -55,10 +55,10 @@ def salva_png(im, nome):
     im.save(os.path.join(IMG, nome), optimize=True)
 
 
-def salva_jpg(im, nome, q=84):
+def salva_jpg(im, nome, q=93):
     sfondo = Image.new("RGB", im.size, (0, 0, 0))
     sfondo.paste(im, (0, 0), im)
-    sfondo.save(os.path.join(IMG, nome), quality=q, optimize=True, progressive=True)
+    sfondo.save(os.path.join(IMG, nome), quality=q, subsampling=0, optimize=True, progressive=True)
 
 
 def maschera(im, soglia=40):
@@ -207,7 +207,7 @@ def main():
 
     # Copertine
     for nome, file in [("Copertina 1 ", "copertina"), ("Copertina 2", "casa"), ("Copertina 3", "casa-fantasmi"), ("Copertina END", "fine")]:
-        salva_jpg(sulla_scena("Sfondo", nome), f"{file}.jpg", 86)
+        salva_jpg(sulla_scena("Sfondo", nome), f"{file}.jpg")
 
     # Sprite ritagliati: si salva l'immagine e dove sta il punto di rotazione
     def sprite_png(sprite, nome, file, x=0, y=0):
