@@ -106,7 +106,6 @@ const PENSIERI = {
   uscitaChiusa: "È chiusa... devo trovare quel pallone!",
   nonCiTorno: "Ho quello che mi serve, io là non ci torno!",
   chiaveUtile: "Una chiave... può tornarmi utile!",
-  cameraChiusa: "È chiusa a chiave... forse la chiave è da qualche parte al piano terra.",
   buioSenzaTorcia: "Hmm... prima di proseguire sarà meglio trovare una torcia!",
   troppoBuio: "È troppo buio per andare avanti: mi serve una torcia!",
   buioConTorcia: "Non fa molta luce, ma meglio di niente. Dovrò fare attenzione!",
@@ -120,7 +119,10 @@ const PENSIERI = {
   presoDaiGuardiani: "Le armature mi hanno preso la chiave!",
   palloneVisto: "Il mio pallone! Finalmente!",
   pallonePreso: "Ce l'ho! Ora corro all'uscita, nell'ingresso.",
-  tuttiIPianoforti: "Hai fatto suonare tutti i pianoforti! Dallo scantinato arriva un rumore...",
+  tuttiIPianoforti: "Hai fatto suonare tutti i pianoforti! Dalla stanza del camino arriva un rumore...",
+  armadioChiuso: "Questo armadio è strano... ha una piccola serratura. Forse si apre con una chiave.",
+  passaggioSegreto: "La chiave del bagno apre l'armadio... c'è un passaggio segreto!",
+  stanzaSegreta: "Una stanza segreta, con il camino acceso... chi l'avrà acceso?",
   pianoforteVicino: "Un pianoforte! Avvicinati per ascoltarlo.",
 };
 
