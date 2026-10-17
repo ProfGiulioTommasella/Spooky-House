@@ -1,0 +1,537 @@
+:root {
+  --notte: #0b0a10;
+  --inchiostro: #2a1a0e;
+  --pergamena: #f1e0b8;
+  --pergamena-scura: #d6b981;
+  --spettro: #9fe8c8;
+  --oro: #e8b23a;
+  --rosso: #c0352b;
+  --verde: #2f7d32;
+  --viola: #6b4fa3;
+  --titolo: "Creepster", "Alegreya", cursive;
+  --libro: "Alegreya", Georgia, "Times New Roman", serif;
+  --trad: "Alegreya", Georgia, serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #050407;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Lo schermo di gioco è sempre 1280x720 e viene scalato per adattarsi. */
+#schermo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1280px;
+  height: 720px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: #000;
+  font-family: var(--libro);
+  color: #f3ead6;
+}
+#scena { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.nascosto { display: none !important; }
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  color: inherit;
+  background: none;
+}
+
+.grande {
+  font-family: var(--titolo);
+  font-size: 34px;
+  letter-spacing: 2px;
+  padding: 14px 38px 12px;
+  background: linear-gradient(#a6e9c9, #5fbf98);
+  color: #10231b;
+  border: 3px solid #0b1712;
+  border-radius: 14px;
+  box-shadow: 0 6px 0 #2c6b52, 0 0 26px rgba(150, 255, 210, 0.35);
+  animation: pulsa 1.6s ease-in-out infinite;
+}
+.grande:active { transform: translateY(4px); box-shadow: 0 2px 0 #2c6b52; }
+.grande:disabled { filter: grayscale(1) brightness(0.7); animation: none; cursor: default; }
+@keyframes pulsa { 50% { filter: brightness(1.12); transform: scale(1.035); } }
+
+/* ---------- Pulsanti in alto a destra ---------- */
+#comandi {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: flex;
+  gap: 8px;
+  z-index: 60;
+}
+.tondo {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(12, 10, 20, 0.8);
+  border: 2px solid var(--spettro);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(159, 232, 200, 0.3);
+}
+.tondo.spento { opacity: 0.55; border-color: #6b6b7a; box-shadow: none; }
+#btn-atmosfera.spento::after {
+  content: "";
+  position: absolute;
+  left: 8px; right: 8px; top: 50%;
+  height: 3px;
+  background: #ff6b5b;
+  transform: rotate(-45deg);
+  border-radius: 2px;
+}
+
+/* ---------- Pannello laterale ---------- */
+#pannello {
+  position: absolute;
+  left: 960px;
+  top: 0;
+  width: 320px;
+  height: 720px;
+  padding: 70px 18px 14px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(120, 90, 180, 0.25), transparent 60%),
+    linear-gradient(#15121f, #0a0910);
+  border-left: 2px solid #2d2640;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+#pannello .logo {
+  position: absolute;
+  top: 12px;
+  left: 18px;
+  width: 120px;
+  line-height: 0.95;
+  font-family: var(--titolo);
+  font-size: 25px;
+  color: var(--spettro);
+  text-shadow: 0 0 12px rgba(159, 232, 200, 0.6), 2px 2px 0 #000;
+  letter-spacing: 1px;
+}
+#dove { text-align: center; line-height: 1.15; }
+#dove-piano { font-size: 15px; letter-spacing: 3px; text-transform: uppercase; color: #b9a8e0; }
+#dove-stanza { font-size: 24px; font-weight: 800; color: #fff3d6; }
+#dove .trad { font-size: 15px; color: #d9c9ff; margin-top: 2px; }
+#mappa {
+  width: 280px;
+  height: 150px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid #2d2640;
+  border-radius: 10px;
+}
+.riquadro {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2d2640;
+  border-radius: 10px;
+  padding: 7px 10px 8px;
+}
+.riquadro .etichetta { font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: #b9a8e0; margin-bottom: 4px; }
+.riquadro .etichetta .trad { display: inline; margin-left: 6px; font-size: 13px; text-transform: none; color: #d9c9ff; }
+#pianoforti { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+#pianoforti .pf {
+  height: 26px;
+  border-radius: 5px;
+  background: #241f33;
+  border: 1px solid #3a3352;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: #5e5578;
+}
+#pianoforti .pf.fatto { background: linear-gradient(#f7d77a, #c8952c); color: #2a1a0e; border-color: #000; box-shadow: 0 0 8px rgba(255, 210, 110, 0.5); }
+#punti { font-size: 22px; color: #fff3d6; }
+#punti b { font-size: 30px; color: var(--oro); }
+#zaino { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+#zaino .slot {
+  height: 56px;
+  border-radius: 8px;
+  background: #1a1726;
+  border: 1px dashed #3a3352;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#zaino .slot img { max-width: 40px; max-height: 44px; opacity: 0.12; filter: grayscale(1); transition: all 0.4s; }
+#zaino .slot.preso { border: 1px solid var(--oro); background: #2a2238; box-shadow: inset 0 0 12px rgba(232, 178, 58, 0.35); }
+#zaino .slot.preso img { opacity: 1; filter: drop-shadow(0 0 6px rgba(255, 220, 120, 0.8)); }
+#contatori { display: flex; justify-content: space-between; font-size: 22px; color: #e7dcff; padding: 0 4px; margin-top: auto; margin-bottom: 18px; }
+
+/* ---------- Titolo ---------- */
+#titolo {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+#btn-start {
+  position: absolute;
+  left: 480px;
+  top: 318px;
+  transform: translateX(-50%);
+  animation: galleggia 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 60, 60, 0.7));
+}
+#btn-start img { width: 240px; display: block; }
+@keyframes galleggia { 50% { transform: translate(-50%, -12px); } }
+.sotto-titolo {
+  position: absolute;
+  left: 1000px;
+  right: 22px;
+  top: 90px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 18px;
+}
+#titolo .trama { font-size: 22px; line-height: 1.3; margin: 0; text-shadow: 2px 2px 3px #000; }
+#titolo .trama > span { display: block; }
+#titolo .trama .trad { font-size: 0.85em; color: var(--spettro); }
+#titolo .grande { font-size: 36px; }
+#scelta-lingua { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; }
+#scelta-lingua .etichetta { font-size: 18px; width: 100%; text-shadow: 1px 1px 2px #000; }
+#scelta-lingua button {
+  font-family: var(--libro);
+  font-size: 17px;
+  font-weight: 700;
+  padding: 6px 13px;
+  color: #f3ead6;
+  background: rgba(20, 16, 30, 0.75);
+  border: 2px solid rgba(159, 232, 200, 0.6);
+  border-radius: 20px;
+}
+#scelta-lingua button:lang(zh) { font-family: var(--libro), "Noto Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+#scelta-lingua button.scelta { background: var(--spettro); color: #10231b; border-color: #000; }
+#titolo .nota { font-size: 16px; color: #cfc6e6; margin: 0; line-height: 1.3; }
+
+/* ---------- Didascalie ---------- */
+#didascalia {
+  position: absolute;
+  left: 90px;
+  right: 90px;
+  bottom: 70px;
+  z-index: 25;
+  padding: 22px 30px;
+  font-size: 30px;
+  line-height: 1.3;
+  text-align: center;
+  color: #fff;
+  background: rgba(5, 4, 10, 0.78);
+  border: 2px solid rgba(159, 232, 200, 0.5);
+  border-radius: 14px;
+  text-shadow: 2px 2px 2px #000;
+  animation: compari 0.6s ease-out;
+}
+#didascalia .trad { font-size: 24px; color: var(--spettro); margin-top: 8px; }
+#btn-salta {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 26;
+  font-family: var(--libro);
+  font-weight: 800;
+  font-size: 20px;
+  padding: 8px 18px;
+  color: #fff;
+  background: rgba(10, 8, 18, 0.8);
+  border: 2px solid #fff;
+  border-radius: 10px;
+}
+@keyframes compari { from { opacity: 0; transform: translateY(14px); } }
+
+/* ---------- Banner con il nome della stanza ---------- */
+#banner {
+  position: absolute;
+  left: 0;
+  width: 960px;
+  top: 34px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 15;
+  animation: banner 2.6s ease-out forwards;
+}
+#banner-piccolo { font-size: 18px; letter-spacing: 4px; text-transform: uppercase; color: #cbbcf0; text-shadow: 2px 2px 2px #000; }
+#banner-grande { font-family: var(--titolo); font-size: 52px; color: #fff3d6; text-shadow: 0 0 18px rgba(159, 232, 200, 0.7), 3px 3px 0 #000; }
+#banner .trad { font-size: 22px; color: var(--spettro); text-shadow: 2px 2px 2px #000; }
+@keyframes banner {
+  0% { opacity: 0; transform: translateY(-14px); }
+  15% { opacity: 1; transform: none; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- Pensieri ---------- */
+#pensiero {
+  position: absolute;
+  left: 480px;
+  bottom: 22px;
+  transform: translateX(-50%);
+  width: 560px;
+  min-height: 120px;
+  padding: 26px 74px 24px;
+  z-index: 16;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.22;
+  color: var(--inchiostro);
+  background: url("../assets/img/pergamena.png") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.7));
+  animation: srotola 0.35s ease-out;
+  pointer-events: none;
+}
+#pensiero .trad { font-size: 20px; color: #6b3a12; margin-top: 4px; }
+#pensiero.grosso { font-family: var(--titolo); font-size: 56px; font-weight: 400; letter-spacing: 3px; }
+@keyframes srotola { from { opacity: 0; transform: translateX(-50%) scaleX(0.3); } }
+
+/* ---------- Voci dei fantasmi ---------- */
+#dialogo {
+  position: absolute;
+  left: 110px;
+  width: 740px;
+  top: 90px;
+  z-index: 30;
+  padding: 24px 34px 26px;
+  text-align: center;
+  color: #e9fff5;
+  background: radial-gradient(ellipse at 50% 30%, rgba(60, 120, 100, 0.55), rgba(8, 10, 18, 0.94) 70%);
+  border: 2px solid rgba(159, 232, 200, 0.7);
+  border-radius: 22px;
+  box-shadow: 0 0 40px rgba(120, 255, 200, 0.35), 0 20px 40px rgba(0, 0, 0, 0.7);
+  animation: compari 0.5s ease-out;
+}
+#dialogo-ritratti { display: flex; justify-content: center; gap: 14px; margin-bottom: 14px; }
+#dialogo-ritratti img { height: 130px; filter: drop-shadow(0 0 10px rgba(159, 232, 200, 0.6)); animation: fluttua 3s ease-in-out infinite; }
+#dialogo-ritratti img:nth-child(2) { animation-delay: -0.7s; }
+#dialogo-ritratti img:nth-child(3) { animation-delay: -1.4s; }
+#dialogo-ritratti img:nth-child(4) { animation-delay: -2.1s; }
+@keyframes fluttua { 50% { transform: translateY(-8px); } }
+#dialogo-testo { font-size: 28px; line-height: 1.3; font-style: italic; text-shadow: 0 0 8px rgba(0, 0, 0, 0.9); min-height: 80px; }
+#dialogo-testo .trad { font-size: 22px; color: var(--spettro); margin-top: 8px; }
+#dialogo .grande { margin-top: 18px; font-size: 28px; }
+.grande .trad { font-family: var(--trad); font-size: 16px; font-weight: 700; margin-top: 4px; letter-spacing: 0; }
+
+/* ---------- Pianoforte ---------- */
+#piano {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background:
+    radial-gradient(ellipse at 50% 55%, rgba(255, 190, 90, 0.22), transparent 45%),
+    rgba(4, 3, 8, 0.93);
+  animation: compari 0.4s ease-out;
+}
+#piano-testa { position: absolute; left: 0; right: 0; top: 18px; text-align: center; }
+#piano-stanza { font-size: 18px; letter-spacing: 4px; text-transform: uppercase; color: #cbbcf0; }
+#piano-frammento { font-family: var(--titolo); font-size: 46px; color: #ffe2a0; text-shadow: 0 0 14px rgba(255, 190, 90, 0.6), 3px 3px 0 #000; }
+#piano-testa .trad { font-size: 20px; color: #ffe2a0; }
+#piano-centro {
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  top: 110px;
+  height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ritratto {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border-radius: 18px;
+  padding: 8px;
+  transition: transform 0.2s, filter 0.3s;
+}
+.ritratto img { height: 360px; filter: drop-shadow(0 10px 18px #000); }
+.ritratto .nome {
+  font-family: var(--titolo);
+  font-size: 40px;
+  letter-spacing: 2px;
+  padding: 4px 26px 2px;
+  border-radius: 12px;
+  color: #10231b;
+  background: linear-gradient(#a6e9c9, #5fbf98);
+  border: 3px solid #0b1712;
+  box-shadow: 0 5px 0 #2c6b52;
+}
+.ritratto .nome .tasto { font-family: var(--libro); font-size: 22px; font-weight: 800; margin-right: 10px; opacity: 0.75; }
+.ritratto:disabled { cursor: default; }
+.ritratto:disabled .nome { filter: grayscale(0.8) brightness(0.65); box-shadow: none; }
+.ritratto:not(:disabled):hover { transform: scale(1.04); }
+.ritratto:not(:disabled) .nome { animation: pulsa 1.4s ease-in-out infinite; }
+.ritratto.scelto-giusto img { filter: drop-shadow(0 0 26px rgba(120, 255, 160, 0.9)); }
+.ritratto.scelto-sbagliato img { filter: drop-shadow(0 0 26px rgba(255, 60, 40, 0.95)); animation: trema 0.5s; }
+@keyframes trema { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+#piano-strumento { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+#piano-img { width: 440px; filter: drop-shadow(0 0 30px rgba(255, 190, 90, 0.35)); }
+#piano-barra { width: 380px; height: 12px; border-radius: 6px; background: #241f33; border: 1px solid #4a4266; overflow: hidden; }
+#piano-barra-pieno { height: 100%; width: 0; background: linear-gradient(90deg, #f7d77a, #ff9d5c); }
+#piano-messaggio { min-height: 58px; font-size: 24px; text-align: center; color: #fff3d6; line-height: 1.25; max-width: 520px; }
+#piano-messaggio .trad { font-size: 19px; color: #ffe2a0; }
+#piano-esito {
+  position: absolute;
+  left: 340px;
+  right: 340px;
+  top: 120px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  animation: compari 0.4s ease-out;
+}
+#esito-titolo { font-family: var(--titolo); font-size: 64px; letter-spacing: 3px; text-shadow: 3px 3px 0 #000; }
+#esito-titolo.giusto { color: #8dffb0; text-shadow: 0 0 20px rgba(100, 255, 150, 0.7), 3px 3px 0 #000; }
+#esito-titolo.sbagliato { color: #ff7a6a; text-shadow: 0 0 20px rgba(255, 80, 60, 0.7), 3px 3px 0 #000; }
+#esito-titolo .trad { font-size: 22px; letter-spacing: 0; }
+#esito-cartiglio {
+  width: 600px;
+  min-height: 300px;
+  padding: 34px 80px 30px;
+  text-align: center;
+  color: var(--inchiostro);
+  background: url("../assets/img/pergamena.png") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 10px 18px #000);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+#esito-autore { font-family: var(--titolo); font-size: 36px; letter-spacing: 1px; }
+#esito-autore .trad { font-family: var(--trad); font-size: 18px; letter-spacing: 0; }
+#esito-brano { font-size: 26px; font-weight: 800; line-height: 1.2; margin-top: 2px; }
+#esito-brano .da { display: block; font-size: 20px; font-weight: 600; font-style: italic; }
+#esito-brano .trad { font-size: 18px; color: #6b3a12; }
+#esito-scheda { font-size: 17px; line-height: 1.3; margin-top: 10px; color: #4a3020; }
+#esito-scheda .trad { font-size: 15px; color: #6b3a12; }
+#btn-avanti { margin-top: 6px; font-size: 30px; }
+
+/* ---------- Finale ---------- */
+#finale {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 18px;
+  background: url("../assets/img/fine.jpg") center / auto 100% no-repeat, #000;
+}
+/* prima si vede l'immagine finale, poi arriva il foglio con i risultati */
+#finale .foglio {
+  width: 1000px;
+  max-height: 640px;
+  overflow-y: auto;
+  padding: 16px 24px 18px;
+  background: rgba(8, 7, 14, 0.92);
+  border: 2px solid rgba(159, 232, 200, 0.6);
+  border-radius: 18px;
+  box-shadow: 0 0 30px rgba(120, 255, 200, 0.25);
+  text-align: center;
+  opacity: 0;
+  animation: foglio-entra 0.9s ease-out 2.8s forwards;
+}
+@keyframes foglio-entra {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: none; }
+}
+#finale h2 { margin: 0; font-family: var(--titolo); font-weight: 400; font-size: 48px; color: var(--spettro); text-shadow: 0 0 16px rgba(159, 232, 200, 0.6), 3px 3px 0 #000; letter-spacing: 2px; }
+#finale h2 .trad { font-size: 22px; letter-spacing: 0; }
+#finale-testo { font-size: 24px; margin: 6px 0; }
+#finale-testo .trad { font-size: 19px; color: var(--spettro); }
+#finale-dati { font-size: 19px; color: #cbbcf0; margin: 0 0 8px; }
+#finale-lista { list-style: none; padding: 0; margin: 0 0 14px; text-align: left; display: grid; grid-template-columns: 1fr 1fr; column-gap: 22px; }
+#finale-lista li { display: flex; align-items: center; gap: 10px; padding: 4px 6px; border-bottom: 1px solid #241f33; font-size: 17px; line-height: 1.15; }
+#finale-lista .segno { width: 24px; font-size: 20px; text-align: center; }
+#finale-lista .ok { color: #8dffb0; }
+#finale-lista .no { color: #ff7a6a; }
+#finale-lista .chi { width: 88px; font-weight: 800; color: var(--oro); }
+#finale-lista .cosa { flex: 1; }
+#finale-lista .cosa .trad { font-size: 14px; color: #cbbcf0; margin-top: 1px; }
+#finale-lista button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--spettro);
+  color: var(--spettro);
+  font-size: 14px;
+}
+#finale-lista button.suona { background: var(--spettro); color: #10231b; }
+#finale .grande { font-size: 30px; }
+
+#firma {
+  position: absolute;
+  right: 14px;
+  bottom: 6px;
+  z-index: 55;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 700;
+  color: rgba(230, 220, 255, 0.75);
+  text-shadow: 1px 1px 2px #000, 0 0 6px #000;
+  pointer-events: none;
+}
+
+/* ---------- Ruota il tablet ---------- */
+#ruota {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--notte);
+  color: #e9fff5;
+  font-family: var(--libro);
+  font-size: 24px;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+#ruota .icona { font-size: 64px; margin-bottom: 16px; }
+@media (orientation: portrait) and (max-width: 900px) {
+  #ruota { display: flex; }
+}
+
+/* ---------- Versione bilingue: traduzione sotto l'italiano ---------- */
+.trad {
+  display: block;
+  font-family: var(--trad);
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.25;
+  margin-top: 4px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.trad:lang(zh) {
+  font-family: "Noto Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-style: normal;
+}

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0b0a10">
+  <title>Spooky House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700;800&family=Creepster&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/stile.css?v=1">
+</head>
+<body>
+  <div id="schermo">
+    <canvas id="scena" width="1280" height="720"></canvas>
+
+    <!-- Pannello laterale: dove sono, mappa, pianoforti, zaino -->
+    <aside id="pannello" class="nascosto">
+      <div class="logo">Spooky<br>House</div>
+      <div id="dove">
+        <div id="dove-piano"></div>
+        <div id="dove-stanza"></div>
+      </div>
+      <canvas id="mappa" width="560" height="300" aria-label="Mappa del piano"></canvas>
+      <div class="riquadro">
+        <div class="etichetta" id="et-pianoforti">Pianoforti suonati</div>
+        <div id="pianoforti"></div>
+      </div>
+      <div class="riquadro">
+        <div class="etichetta" id="et-punti">Brani riconosciuti</div>
+        <div id="punti"><b id="n-punti">0</b> / 16</div>
+      </div>
+      <div class="riquadro">
+        <div class="etichetta" id="et-zaino">Nello zaino</div>
+        <div id="zaino"></div>
+      </div>
+      <div id="contatori"><span id="tempo">⏱ 0:00</span><span id="spaventi" title="Spaventi">👻 0</span></div>
+    </aside>
+
+    <!-- Pulsanti sempre visibili -->
+    <div id="comandi">
+      <button id="btn-atmosfera" class="tondo" aria-label="Rumori di fondo">🎵</button>
+      <button id="btn-audio" class="tondo" aria-label="Effetti sonori">🔊</button>
+      <button id="btn-schermo" class="tondo" aria-label="Schermo intero">⛶</button>
+    </div>
+
+    <!-- Schermata titolo -->
+    <div id="titolo" class="pannello-pieno">
+      <button id="btn-start" aria-label="Inizia"><img src="assets/img/start.png" alt=""></button>
+      <div class="sotto-titolo">
+        <p class="trama"><span id="trama-1">Un gioco per riconoscere la musica di Bach, Vivaldi, Mozart e Beethoven.</span></p>
+        <button id="btn-inizia" class="grande">▶ INIZIA</button>
+        <div id="scelta-lingua" role="group" aria-label="Lingua">
+          <span class="etichetta">🌍 Lingua</span>
+          <button data-lingua="">Solo italiano</button>
+          <button data-lingua="sq" lang="sq">+ Shqip</button>
+          <button data-lingua="es" lang="es">+ Español</button>
+          <button data-lingua="zh" lang="zh">+ 中文</button>
+        </div>
+        <p class="nota" id="nota-comandi">Si cammina con le frecce o W A S D, oppure tenendo premuto il dito (o il mouse) dove si vuole andare.</p>
+      </div>
+    </div>
+
+    <!-- Didascalie della scena iniziale -->
+    <div id="didascalia" class="nascosto"></div>
+    <button id="btn-salta" class="nascosto">SALTA ▶▶</button>
+
+    <!-- Nome della stanza quando si entra -->
+    <div id="banner" class="nascosto"><div id="banner-piccolo"></div><div id="banner-grande"></div></div>
+
+    <!-- Pensieri del protagonista -->
+    <div id="pensiero" class="nascosto"></div>
+
+    <!-- Voci dei fantasmi -->
+    <div id="dialogo" class="nascosto">
+      <div id="dialogo-ritratti"></div>
+      <div id="dialogo-testo"></div>
+      <button id="btn-dialogo" class="grande">Avanti</button>
+    </div>
+
+    <!-- Il pianoforte: ascolto e scelta del compositore -->
+    <div id="piano" class="nascosto">
+      <div id="piano-testa">
+        <div id="piano-stanza"></div>
+        <div id="piano-frammento"></div>
+      </div>
+      <div id="piano-centro">
+        <button class="ritratto" id="ritratto-0" data-scelta="0"><img alt=""><span class="nome"></span></button>
+        <div id="piano-strumento">
+          <img id="piano-img" src="assets/img/pianoforte-0.png" alt="">
+          <div id="piano-barra"><div id="piano-barra-pieno"></div></div>
+          <div id="piano-messaggio"></div>
+          <button id="btn-ascolta" class="grande">▶ ASCOLTA</button>
+        </div>
+        <button class="ritratto" id="ritratto-1" data-scelta="1"><img alt=""><span class="nome"></span></button>
+      </div>
+      <div id="piano-esito" class="nascosto">
+        <div id="esito-titolo"></div>
+        <div id="esito-cartiglio">
+          <div id="esito-autore"></div>
+          <div id="esito-brano"></div>
+          <div id="esito-scheda"></div>
+        </div>
+        <button id="btn-avanti" class="grande">Avanti</button>
+      </div>
+    </div>
+
+    <!-- Comandi sul tablet: suggerimento -->
+    <div id="firma">by prof. Giulio Tommasella</div>
+
+    <!-- Finale -->
+    <div id="finale" class="nascosto">
+      <div class="foglio">
+        <h2 id="finale-titolo"></h2>
+        <p id="finale-testo"></p>
+        <p id="finale-dati"></p>
+        <ol id="finale-lista"></ol>
+        <button id="btn-rigioca" class="grande">↻ GIOCA ANCORA</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ruota">
+    <div class="icona">📱↻</div>
+    <p>Ruota il dispositivo in orizzontale per giocare</p>
+  </div>
+
+  <script src="js/contenuti.js?v=1"></script>
+  <script src="js/stanze.js?v=1"></script>
+  <script src="js/maschere.js?v=1"></script>
+  <script src="js/traduzioni.js?v=1"></script>
+  <script src="js/gioco.js?v=1"></script>
+</body>
+</html>
