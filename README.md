@@ -86,6 +86,12 @@ Per provare una stanza si apre `index.html#stanza=8` (si parte lì con tutti gli
   nel finale i 16 brani si possono riascoltare.
 - Dopo uno spavento o una caduta si ha un attimo di tregua; i fantasmi compaiono e svaniscono
   con calma, e le porte mostrano con una freccia o un lucchetto se si può passare.
+- I fantasmi girano su percorsi curvi con qualche pausa; se il ragazzo si avvicina lo notano
+  (sussulto e bagliore rosso) e lo inseguono per qualche secondo, poi tornano al loro giro.
+  Ogni tanto svaniscono e ricompaiono altrove. Il fascio della torcia (solo il cono stretto
+  davanti al ragazzo) li respinge fino al bordo della luce: se toccano il muro o restano
+  illuminati per un attimo svaniscono e ricompaiono in fondo al loro percorso. I valori si
+  regolano in `FANTASMA`, in [`js/gioco.js`](js/gioco.js).
 - Rumori di fondo (vento e bordone), schermo intero, tablet e versione bilingue.
 
 ## Struttura

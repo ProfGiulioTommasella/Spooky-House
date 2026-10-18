@@ -903,29 +903,157 @@
     }
     return false;
   }
+  // I fantasmi: fanno il loro giro su curve morbide, con qualche pausa; ogni tanto svaniscono
+  // e ricompaiono più avanti. Se il ragazzo si avvicina lo notano (si fermano, si illuminano
+  // di rosso) e lo inseguono piano per qualche secondo, poi tornano al giro.
+  // Nelle stanze buie il fascio della torcia li respinge: arretrano e, se insisti, svaniscono.
+  const FANTASMA = {
+    vista: 150, // a che distanza notano il ragazzo
+    preavviso: 0.7, // secondi fermi prima di inseguire
+    inseguimento: [2.5, 3.5], // per quanti secondi inseguono
+    velocitaInseguimento: 95, // il ragazzo va a 250
+    riposo: 4, // secondi prima di poter notare di nuovo
+    sparizione: [7, 12], // ogni quanti secondi svaniscono e ricompaiono più avanti
+    fascio: { lunghezza: 230, apertura: 0.45 }, // il fascio stretto della torcia (raggio in pixel, mezzo angolo)
+    respintoPerSvanire: 1.6, // secondi nel fascio prima di svanire
+  };
+  // punto del giro: curva che passa per i punti (Catmull-Rom), con partenza e arrivo dolci
+  function puntoGiro(giro, i, t) {
+    const n = giro.length;
+    const q = (k) => P(giro[(i + k + n) % n]);
+    const [p0, p1, p2, p3] = [q(-1), q(0), q(1), q(2)];
+    const u = t * t * (3 - 2 * t);
+    const c = (a, b, cc, d) => 0.5 * (2 * b + (-a + cc) * u + (2 * a - 5 * b + 4 * cc - d) * u * u + (-a + 3 * b - 3 * cc + d) * u * u * u);
+    return [c(p0[0], p1[0], p2[0], p3[0]), c(p0[1], p1[1], p2[1], p3[1])];
+  }
+  function nelFascio(f, margine = 1) {
+    if (!STANZE[g.stanza].buio || !ha("torcia")) return false;
+    const dx = f.x - g.x;
+    const dy = f.y - g.y;
+    if (Math.hypot(dx, dy) > FANTASMA.fascio.lunghezza * margine) return false;
+    const diff = Math.atan2(Math.sin(Math.atan2(dy, dx) - g.ang), Math.cos(Math.atan2(dy, dx) - g.ang));
+    return Math.abs(diff) < FANTASMA.fascio.apertura;
+  }
+  function svanisci(f, lontano) {
+    f.stato = "svanisce";
+    f.timer = 0.5;
+    f.lontano = lontano;
+  }
   function aggiornaFantasma(dt) {
     const f = g.fantasma;
     if (!f) return;
     if (!f.attivo && attivoFantasma(f)) {
       f.attivo = true;
+      f.stato = "giro";
+      f.pausa = 0;
+      f.riposo = 1.5;
+      f.prossimaSparizione = caso(...FANTASMA.sparizione);
+      f.scia = [];
       suona("fantasma", 0.35);
     }
     if (!f.attivo) return;
-    f.alfa = Math.min(1, f.alfa + dt * 1.5);
     const giro = f.def.giro;
-    f.t += dt;
-    while (f.t >= f.durata) {
-      f.t -= f.durata;
-      f.i = (f.i + 1) % giro.length;
-      f.durata = caso(...f.def.tempo);
+    const x0 = f.x;
+    const y0 = f.y;
+    f.riposo = Math.max(0, f.riposo - dt);
+    const vicino = dist(f.x, f.y, g.x, g.y) < FANTASMA.vista && g.invuln <= 0 && g.caduta <= 0;
+    const verso = (tx, ty, v) => {
+      const d = dist(f.x, f.y, tx, ty);
+      if (d > 1) { const k = Math.min(1, (v * dt) / d); f.x += (tx - f.x) * k; f.y += (ty - f.y) * k; }
+      return d;
+    };
+    // il fascio della torcia vince su tutto
+    if (f.alfa > 0.5 && f.stato !== "svanisce" && f.stato !== "ricompare" && nelFascio(f)) {
+      if (f.stato !== "respinto") { f.stato = "respinto"; f.timer = 0; }
     }
-    const [ax, ay] = P(giro[f.i]);
-    const [bx, by] = P(giro[(f.i + 1) % giro.length]);
-    const p = f.t / f.durata;
-    f.x = ax + (bx - ax) * p;
-    f.y = ay + (by - ay) * p;
-    if (Math.abs(bx - ax) > 4) f.verso = bx > ax ? 1 : -1;
-    if (f.alfa > 0.7 && g.invuln <= 0 && g.caduta <= 0 && Math.abs(f.x - g.x) < 40 && Math.abs(f.y - 6 - g.y) < 36) spavento();
+    switch (f.stato) {
+      case "giro": {
+        f.alfa = Math.min(1, f.alfa + dt * 1.5);
+        if (f.pausa > 0) f.pausa -= dt;
+        else {
+          f.t += dt;
+          if (f.t >= f.durata) {
+            f.t = 0;
+            f.i = (f.i + 1) % giro.length;
+            f.durata = caso(...f.def.tempo) * 1.15;
+            if (Math.random() < 0.35) f.pausa = caso(0.4, 0.9);
+          }
+        }
+        [f.x, f.y] = puntoGiro(giro, f.i, f.t / f.durata);
+        f.prossimaSparizione -= dt;
+        if (vicino && !f.riposo) { f.stato = "nota"; f.timer = FANTASMA.preavviso; suona("fantasma", 0.5); }
+        else if (f.prossimaSparizione <= 0) svanisci(f, false);
+        break;
+      }
+      case "nota":
+        f.timer -= dt;
+        if (g.x !== f.x) f.verso = g.x > f.x ? 1 : -1;
+        if (f.timer <= 0) { f.stato = "insegue"; f.timer = caso(...FANTASMA.inseguimento); }
+        break;
+      case "insegue":
+        f.timer -= dt;
+        verso(g.x, g.y + 6, FANTASMA.velocitaInseguimento);
+        if (f.timer <= 0) { f.stato = "torna"; f.riposo = FANTASMA.riposo; }
+        break;
+      case "torna": {
+        f.alfa = Math.min(1, f.alfa + dt * 1.5);
+        const [tx, ty] = puntoGiro(giro, f.i, f.t / f.durata);
+        if (verso(tx, ty, 120) < 6) f.stato = "giro";
+        break;
+      }
+      case "respinto": {
+        f.timer += dt;
+        // finché la luce lo tiene (con un po' di margine) arretra fino al bordo del fascio e lì resta;
+        // se non ha più spazio (muro della stanza) o la luce insiste, svanisce
+        if (!nelFascio(f, 1.35)) { f.stato = "torna"; f.riposo = FANTASMA.riposo; break; }
+        const a = Math.atan2(f.y - g.y, f.x - g.x);
+        if (dist(f.x, f.y, g.x, g.y) < FANTASMA.fascio.lunghezza) {
+          f.x += Math.cos(a) * 75 * dt;
+          f.y += Math.sin(a) * 75 * dt;
+        }
+        const bordo = f.x < 50 || f.x > RW - 50 || f.y < 50 || f.y > RH - 50;
+        f.x = Math.max(50, Math.min(RW - 50, f.x));
+        f.y = Math.max(50, Math.min(RH - 50, f.y));
+        if (bordo || f.timer > FANTASMA.respintoPerSvanire) { svanisci(f, true); suona("fantasma", 0.4); }
+        break;
+      }
+      case "svanisce":
+        f.alfa = Math.max(0, f.alfa - dt * 2);
+        f.timer -= dt;
+        if (f.timer <= 0) {
+          // ricompare più avanti nel giro (lontano dal ragazzo, se l'ha respinto la torcia)
+          let migliore = (f.i + 1 + Math.floor(Math.random() * Math.max(1, giro.length - 1))) % giro.length;
+          if (f.lontano) {
+            let dmax = -1;
+            giro.forEach((pt, k) => { const [x, y] = P(pt); const d = dist(x, y, g.x, g.y); if (d > dmax) { dmax = d; migliore = k; } });
+          }
+          f.i = migliore;
+          f.t = 0;
+          f.durata = caso(...f.def.tempo) * 1.15;
+          [f.x, f.y] = puntoGiro(giro, f.i, 0);
+          f.scia = [];
+          f.stato = "ricompare";
+          f.prossimaSparizione = caso(...FANTASMA.sparizione);
+          f.riposo = FANTASMA.riposo / 2;
+        }
+        break;
+      case "ricompare":
+        f.alfa = Math.min(1, f.alfa + dt * 2);
+        if (f.alfa >= 1) f.stato = "giro";
+        break;
+    }
+    // velocità (per allungare il lenzuolo) e scia
+    const vx = (f.x - x0) / Math.max(dt, 1e-3);
+    const vy = (f.y - y0) / Math.max(dt, 1e-3);
+    f.vel = Math.min(1, Math.hypot(vx, vy) / 200);
+    if (Math.abs(vx) > 8 && f.stato !== "nota") f.verso = vx > 0 ? 1 : -1;
+    f.scia.unshift([f.x, f.y]);
+    if (f.scia.length > 14) f.scia.pop();
+    if (f.alfa > 0.7 && g.invuln <= 0 && g.caduta <= 0 && Math.abs(f.x - g.x) < 40 && Math.abs(f.y - 6 - g.y) < 36) {
+      spavento();
+      f.stato = "torna";
+      f.riposo = FANTASMA.riposo;
+    }
   }
   function spavento() {
     g.spaventi++;
@@ -1235,19 +1363,8 @@
     // il ragazzo
     disegnaRagazzo(t);
 
-    // il fantasma
-    const f = g.fantasma;
-    if (f && f.attivo) {
-      const libro = f.def.libro;
-      const nome = (libro ? "fantasma-libro-" : "fantasma-") + (f.verso < 0 ? "sx" : "dx");
-      const bob = Math.sin(t * 3.2) * 6;
-      ombra(f.x, f.y + 40, 30 * f.alfa, 8 * f.alfa, 0.25);
-      ctx.save();
-      ctx.shadowColor = "rgba(160,255,220,0.9)";
-      ctx.shadowBlur = 24;
-      disegnaImg(nome, f.x, f.y + bob, SCALA_FANTASMA, Math.sin(t * 2) * 0.05, f.alfa * (0.8 + 0.12 * Math.sin(t * 5)));
-      ctx.restore();
-    }
+    // il fantasma (al buio si disegna sopra l'oscurità: brilla di luce propria)
+    if (!s.buio) disegnaFantasma(t);
 
     // polvere nell'aria
     ctx.save();
@@ -1256,7 +1373,7 @@
     ctx.restore();
 
     // buio e torcia
-    if (s.buio) disegnaBuio(t);
+    if (s.buio) { disegnaBuio(t); disegnaFantasma(t); }
     ctx.drawImage(vignetta, 0, 0);
 
     // porte, visibili anche al buio
@@ -1272,6 +1389,38 @@
       ctx.shadowColor = "#000";
       ctx.shadowBlur = 8;
       ctx.fillText(sc.testo, sc.x, sc.y - sc.t * 50);
+      ctx.restore();
+    }
+  }
+
+  function disegnaFantasma(t) {
+    const f = g.fantasma;
+    if (f && f.attivo && f.alfa > 0.01) {
+      const libro = f.def.libro;
+      const nome = (libro ? "fantasma-libro-" : "fantasma-") + (f.verso < 0 ? "sx" : "dx");
+      const bob = Math.sin(t * 3.2) * 6;
+      const arrabbiato = f.stato === "nota" || f.stato === "insegue";
+      const respinto = f.stato === "respinto";
+      // il lenzuolo si allunga quando va veloce; quando ti nota si gonfia e trema
+      let sx = 1 + 0.12 * (f.vel || 0);
+      let sy = 1 - 0.08 * (f.vel || 0);
+      let scatto = 0;
+      if (f.stato === "nota") { const k = 1 - f.timer / FANTASMA.preavviso; sx = sy = 1 + 0.15 * k; scatto = Math.sin(t * 60) * 2.5 * k; }
+      const tremolio = respinto ? 0.45 + 0.35 * Math.abs(Math.sin(t * 22)) : 0.8 + 0.12 * Math.sin(t * 5);
+      ombra(f.x, f.y + 40, 30 * f.alfa, 8 * f.alfa, 0.25);
+      // scia leggera
+      if (f.scia && f.vel > 0.15) {
+        for (let k = 4; k < f.scia.length; k += 4) {
+          const [px, py] = f.scia[k];
+          disegnaImg(nome, px, py + bob, SCALA_FANTASMA, 0, f.alfa * 0.12 * (1 - k / f.scia.length));
+        }
+      }
+      ctx.save();
+      ctx.shadowColor = arrabbiato ? "rgba(255,60,40,0.95)" : "rgba(160,255,220,0.9)";
+      ctx.shadowBlur = arrabbiato ? 34 : 24;
+      ctx.translate(f.x + scatto, f.y + bob);
+      ctx.scale(sx, sy);
+      disegnaImg(nome, 0, 0, SCALA_FANTASMA, Math.sin(t * 2) * 0.05 + (f.vel || 0) * 0.12 * (f.verso || 1), f.alfa * tremolio);
       ctx.restore();
     }
   }
@@ -1853,5 +2002,6 @@
     const arrivo = Object.values(STANZE).flatMap((x) => x.porte).find((p) => p.verso === s);
     entra(s, arrivo ? arrivo.arrivo : STANZE[0].partenza);
     g.velo = 0;
+    window.statoGioco = g; // per le prove automatiche
   }
 })();
