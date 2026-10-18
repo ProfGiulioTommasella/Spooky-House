@@ -69,7 +69,7 @@
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png?v=2`));
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
   for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png?v=2`;
-  for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png?v=3`;
+  for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png?v=4`;
   new Image().src = "assets/img/fine.jpg";
   new Image().src = "assets/img/pergamena.png?v=2";
   for (const s of ["blu", "carta", "legno"]) new Image().src = `assets/img/sfondo-${s}.jpg`;
@@ -1745,7 +1745,7 @@
     });
     $("piano-esito").classList.add("nascosto");
     $("piano-strumento").classList.remove("nascosto");
-    $("piano-img").src = "assets/img/pianoforte-0.png?v=3";
+    $("piano-img").src = "assets/img/pianoforte-0.png?v=4";
     $("piano-barra-pieno").style.width = "0";
     if (pf.primo && pf.parte === 0) scriviTesto($("piano-messaggio"), TESTI_PIANO.istruzioni);
     else $("piano-messaggio").textContent = "";
@@ -1782,7 +1782,7 @@
     clearInterval(pf.anim);
     pf.anim = setInterval(() => {
       fotogramma = (fotogramma % 3) + 1;
-      $("piano-img").src = `assets/img/pianoforte-${fotogramma}.png?v=3`;
+      $("piano-img").src = `assets/img/pianoforte-${fotogramma}.png?v=4`;
       const d = a.duration || 1;
       $("piano-barra-pieno").style.width = `${Math.min(100, (a.currentTime / d) * 100)}%`;
       const secondi = (performance.now() - pf.inizio) / 1000;
@@ -1809,7 +1809,7 @@
   function fermaAnimazionePiano() {
     clearInterval(pf.anim);
     pf.anim = null;
-    $("piano-img").src = "assets/img/pianoforte-0.png?v=3";
+    $("piano-img").src = "assets/img/pianoforte-0.png?v=4";
   }
   function sfumaBrano(a) {
     if (!a) return;

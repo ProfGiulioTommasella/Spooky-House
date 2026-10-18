@@ -365,17 +365,12 @@ button {
 #piano-stanza { font-size: 18px; letter-spacing: 4px; text-transform: uppercase; color: #cbbcf0; }
 #piano-frammento { font-family: var(--titolo); font-size: 46px; color: #ffe2a0; text-shadow: 0 0 14px rgba(255, 190, 90, 0.6), 3px 3px 0 #000; }
 #piano-testa .trad { font-size: 20px; color: #ffe2a0; }
-#piano-centro {
-  position: absolute;
-  left: 30px;
-  right: 30px;
-  top: 110px;
-  height: 520px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+/* la scena dell'ascolto: i due ritratti appesi al muro, il pianoforte con le candele davanti */
+#piano-centro { position: absolute; inset: 0; }
 .ritratto {
+  position: absolute;
+  top: 96px;
+  z-index: 1;
   width: 330px;
   display: flex;
   flex-direction: column;
@@ -385,7 +380,9 @@ button {
   padding: 8px;
   transition: transform 0.2s, filter 0.3s;
 }
-.ritratto img { height: 330px; max-width: 330px; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 10px 18px #000); }
+#ritratto-0 { left: 40px; }
+#ritratto-1 { right: 40px; }
+.ritratto img { height: 310px; max-width: 330px; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 10px 18px #000); }
 .ritratto .nome {
   font-family: var(--titolo);
   font-size: 40px;
@@ -405,11 +402,19 @@ button {
 .ritratto.scelto-giusto img { filter: drop-shadow(0 0 26px rgba(120, 255, 160, 0.9)); }
 .ritratto.scelto-sbagliato img { filter: drop-shadow(0 0 26px rgba(255, 60, 40, 0.95)); animation: trema 0.5s; }
 @keyframes trema { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
-#piano-strumento { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-#piano-img { width: 440px; filter: drop-shadow(0 0 30px rgba(255, 190, 90, 0.35)); }
-#piano-barra { width: 380px; height: 12px; border-radius: 6px; background: #241f33; border: 1px solid #4a4266; overflow: hidden; }
+#piano-strumento { position: absolute; left: 50%; bottom: 0; z-index: 2; width: 730px; transform: translateX(-50%); pointer-events: none; }
+#piano-img { display: block; width: 100%; filter: drop-shadow(0 0 30px rgba(255, 190, 90, 0.3)) drop-shadow(0 18px 24px rgba(0, 0, 0, 0.6)); }
+#piano-comandi {
+  position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+  width: 440px; padding: 10px 16px; border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: rgba(10, 8, 18, 0.72); border: 1px solid rgba(255, 226, 160, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); pointer-events: auto;
+}
+#piano-comandi:has(#btn-ascolta.nascosto):has(#piano-messaggio:empty) { padding: 8px 18px; }
+#piano-barra { width: 100%; height: 12px; border-radius: 6px; background: #241f33; border: 1px solid #4a4266; overflow: hidden; }
 #piano-barra-pieno { height: 100%; width: 0; background: linear-gradient(90deg, #f7d77a, #ff9d5c); }
-#piano-messaggio { min-height: 58px; font-size: 24px; text-align: center; color: #fff3d6; line-height: 1.25; max-width: 520px; }
+#piano-messaggio { font-size: 20px; text-align: center; color: #fff3d6; line-height: 1.25; max-width: 520px; }
 #piano-messaggio .trad { font-size: 19px; color: #ffe2a0; }
 #piano-esito {
   position: absolute;

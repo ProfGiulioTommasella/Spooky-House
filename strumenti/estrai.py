@@ -185,7 +185,7 @@ SPRITE_HD = {
 }
 LATO_HD = 2  # le stanze in alta risoluzione sono 960x720 moltiplicato per questo
 ALTEZZA_RITRATTO = 720  # i ritratti si vedono alti 360 pixel
-LARGHEZZA_PIANOFORTE = 1000  # il pianoforte dell'ascolto si vede largo 440 pixel
+LARGHEZZA_PIANOFORTE = 1300  # il pianoforte dell'ascolto si vede largo 600 pixel
 SPECCHIO = {"fantasma-sx": "fantasma-dx"}  # sprite che si salvano anche girati
 
 
@@ -240,6 +240,9 @@ STANZE = {
 }
 PIANOFORTI = {3: "3 PF pranzo", 6: "6 PF biblio", 8: "8 PF studio", 9: "9 PF salone",
               11: "11 PF salotto", 13: "13 PF camera 1", 19: "19 PF cucina", 20: "20 PF scantinato"}
+# gli stessi pianoforti esportati da Canva in alta risoluzione
+PIANOFORTI_HD = {3: "PT pranzo piano 1", 6: "PT biblio Piano 2", 8: "PT studio Piano 3", 9: "P1 salone Piano 4",
+                 11: "P1 salotto Piano 5", 13: "P1 camera1 Piano 6", 19: "S cucina piano 7", 20: "S scantinato piano 8"}
 
 
 def main():
@@ -268,9 +271,18 @@ def main():
             sp = PIANOFORTI[n]
             im = sulla_scena(sp, SPRITE[sp]["costumes"][0]["name"])
             pezzo, box = ritaglia(im)
-            # il disegno dello Scratch è piccolo: lo si ridisegna nitido, a 4 volte la grandezza della stanza
-            salva_png(pianoforte_ruotato(pezzo), f"piano-{n}.png")
-            s["piano"] = list(box)
+            hd = file_hd(PIANOFORTI_HD[n])
+            if hd:
+                # il pianoforte di Canva, già al suo posto nella stanza (3840x2880)
+                grande = Image.open(hd).convert("RGBA")
+                scala = grande.width / 960
+                b = grande.getbbox()
+                salva_png(grande.crop(b), f"piano-{n}.png")
+                s["piano"] = [round(v / scala, 2) for v in b]
+            else:
+                # il disegno dello Scratch è piccolo: lo si ridisegna nitido, a 4 volte la grandezza della stanza
+                salva_png(pianoforte_ruotato(pezzo), f"piano-{n}.png")
+                s["piano"] = list(box)
         dati["stanze"][n] = s
 
     # Copertine e sfondi del pianoforte (in Canva hanno lo stesso nome, senza spazi in fondo)
