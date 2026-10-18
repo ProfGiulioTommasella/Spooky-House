@@ -123,6 +123,9 @@ const PENSIERI = {
   pianoforteVicino: "Un pianoforte! Avvicinati per ascoltarlo.",
 };
 
+// Quale parte del frammento va ascoltata prima di poter rispondere (0.75 = tre quarti).
+const QUOTA_ASCOLTO = 0.75;
+
 // Messaggi del pianoforte.
 const TESTI_PIANO = {
   istruzioni: "Ascolterai 2 frammenti. Poi sceglierai quale compositore li ha scritti... ma scegli con attenzione!",

@@ -1626,8 +1626,9 @@
       const d = a.duration || 1;
       $("piano-barra-pieno").style.width = `${Math.min(100, (a.currentTime / d) * 100)}%`;
       const secondi = (performance.now() - pf.inizio) / 1000;
-      // si risponde solo a brano finito (o se il browser non è riuscito a farlo partire)
-      if (!pf.puoi && (a.ended || secondi > (a.duration || 60) + 3)) permettiRisposta();
+      // si risponde dopo aver ascoltato almeno tre quarti del brano (o se il browser non è riuscito a farlo partire)
+      const ascoltato = a.duration ? a.currentTime / a.duration : 0;
+      if (!pf.puoi && (ascoltato >= QUOTA_ASCOLTO || a.ended || secondi > (a.duration || 60) + 3)) permettiRisposta();
       if (a.ended) fermaAnimazionePiano();
     }, 300);
   }

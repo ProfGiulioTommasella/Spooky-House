@@ -34,7 +34,7 @@ dei 16 brani, che si possono riascoltare.
 
 Funziona su PC e tablet in orizzontale. Si cammina con le frecce o W A S D, oppure tenendo
 premuto il dito (o il mouse) nel punto dove si vuole andare; il ragazzo guarda verso il mouse.
-Al pianoforte si risponde solo dopo aver ascoltato tutto il frammento, toccando il ritratto
+Al pianoforte si risponde dopo aver ascoltato almeno tre quarti del frammento, toccando il ritratto
 (o con i tasti 1 e 2): i nomi dei compositori compaiono solo dopo la risposta, quindi bisogna
 riconoscerli dal volto. Invio per andare avanti.
 A destra ci sono la mappa del piano (si scopre man mano), i pianoforti suonati, i brani
@@ -66,7 +66,8 @@ testo in `js/contenuti.js` va cambiata anche lì. Un testo senza traduzione comp
 
 I contenuti stanno in [`js/contenuti.js`](js/contenuti.js): i 16 frammenti (file, autore,
 titolo), quale pianoforte li fa ascoltare e fra quali compositori si sceglie, le schede dei
-compositori, i pensieri del ragazzo e i finali.
+compositori, i pensieri del ragazzo e i finali. `QUOTA_ASCOLTO` dice quale parte del frammento
+va ascoltata prima di poter rispondere (0.75 = tre quarti).
 Stanze, porte, oggetti e percorsi dei fantasmi sono in [`js/stanze.js`](js/stanze.js).
 
 Per provare una stanza si apre `index.html#stanza=8` (si parte lì con tutti gli oggetti;
