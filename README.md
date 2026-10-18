@@ -110,4 +110,5 @@ strumenti/estrai.py   rigenera assets e js/maschere.js dal file .sb3 (Pillow, nu
                       con le cartelle dei file Canva come argomenti successivi, stanze e copertine
                       escono a 1920x1440, e ritratti, pianoforte e sprite in alta risoluzione
                       (livelli sfondo, vuoto e ostacoli) e si genera anche l'armadio dello studio
+strumenti/ragazzo/     i costumi del ragazzo (564x564, testa al centro), da cui estrai.py ricava quelli del gioco
 ```

@@ -65,7 +65,7 @@
   for (const n of ["copertina", "casa", "casa-fantasmi"]) pronte.push(carica(n, `assets/img/${n}.jpg?v=2`));
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
     "fantasma-sx", "fantasma-dx", "fantasma-libro-sx", "fantasma-libro-dx", "gargoyle-1", "gargoyle-2", "amici", "torcia",
-    "chiave-piccola", "chiave-torre", "pallone", "armatura", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=3`));
+    "chiave-piccola", "chiave-torre", "pallone", "armatura", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=4`));
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png`));
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
   for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png?v=2`;

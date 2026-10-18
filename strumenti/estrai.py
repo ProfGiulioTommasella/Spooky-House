@@ -231,9 +231,13 @@ def main():
         salva_png(pezzo, file)
         dati["oggetti"][file[:-4]] = {"w": pezzo.width, "h": pezzo.height, "cx": round(cx - box[0], 1), "cy": round(cy - box[1], 1)}
 
-    for nome, file in [("idle", "ragazzo-fermo"), ("step1", "ragazzo-passo1"), ("step2", "ragazzo-passo2"),
-                       ("idle torch", "ragazzo-torcia-fermo"), ("step3", "ragazzo-torcia-passo1"), ("step 2 torch", "ragazzo-torcia-passo2")]:
-        sprite_png("Player", nome, file + ".png")
+    # Il ragazzo: i costumi nuovi (564x564, testa al centro) sono in strumenti/ragazzo; nel gioco
+    # si salvano a 298 px e si disegnano a 149, grandi come i vecchi costumi dello Scratch.
+    for file in ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2",
+                 "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2"]:
+        im = Image.open(os.path.join(RADICE, "strumenti", "ragazzo", file + ".png")).convert("RGBA")
+        salva_png(im.resize((298, 298), Image.LANCZOS), file + ".png")
+        dati["oggetti"][file] = {"w": 149, "h": 149, "cx": 74.5, "cy": 74.5}
     for nome, file in [("ghost L", "fantasma-sx"), ("ghost R", "fantasma-dx"), ("book L", "fantasma-libro-sx"), ("book R", "fantasma-libro-dx")]:
         sprite_png("ghost 1", nome, file + ".png")
     sprite_png("Gargoyle su", "Gargoyle su", "gargoyle-1.png")
