@@ -156,6 +156,9 @@ def riquadro(im, soglia=40):
 # Ogni stanza è fatta di livelli sovrapposti: sfondo, poi il vuoto (se c'è),
 # poi gli ostacoli (muri e mobili). Dal progetto Scratch si prendono i costumi
 # corrispondenti; con la cartella Canva gli stessi livelli in alta risoluzione.
+VUOTO_SOTTO = {15}
+
+
 def componi(livelli):
     tela = Image.new("RGBA", livelli[0].size, (0, 0, 0, 0))
     for im in livelli:
@@ -249,7 +252,8 @@ def main():
         if n != 21:
             livelli = [("sfondo", sulla_scena("Sfondo", sf))]
             if vuoto:
-                livelli.append(("vuoto", sulla_scena("Vuoto", vuoto)))
+                # nella passerella della torre il vuoto sta sotto lo sfondo, che ha le assi sopra il baratro
+                livelli.insert(0 if n in VUOTO_SOTTO else 1, ("vuoto", sulla_scena("Vuoto", vuoto)))
             livelli.append(("ostacoli", ostacoli))
             basso = [im for _, im in livelli]
             hd = [alta_risoluzione(FILE_HD[n].replace(" sfondo", " " + tipo), im) for tipo, im in livelli]
