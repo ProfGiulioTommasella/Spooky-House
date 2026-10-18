@@ -283,7 +283,8 @@ def main():
             t.write(sb3.read(md5ext)); t.flush()
             cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", t.name]
             if filtro:
-                cmd += ["-af", filtro]
+                # loudnorm lavora a 192 kHz: si torna a 48 kHz, altrimenti l'mp3 può uscire muto dopo il primo secondo
+                cmd += ["-af", filtro, "-ar", "48000"]
             cmd += ["-ac", "1" if mono else "2", "-b:a", f"{kbps}k", os.path.join(AUDIO, file)]
             subprocess.run(cmd, check=True)
 

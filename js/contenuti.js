@@ -41,22 +41,22 @@ const COMPOSITORI = {
 
 // I 16 frammenti, nell'ordine del progetto Scratch.
 const FRAMMENTI = [
-  { file: "assets/audio/frammenti/01.mp3", autore: "bach", titolo: "Aria sulla quarta corda", da: "Suite per orchestra n. 3" },
-  { file: "assets/audio/frammenti/02.mp3", autore: "vivaldi", titolo: "La Primavera", da: "Le Quattro Stagioni" },
-  { file: "assets/audio/frammenti/03.mp3", autore: "vivaldi", titolo: "L'Inverno", da: "Le Quattro Stagioni" },
-  { file: "assets/audio/frammenti/04.mp3", autore: "vivaldi", titolo: "L'Autunno", da: "Le Quattro Stagioni" },
-  { file: "assets/audio/frammenti/05.mp3", autore: "bach", titolo: "Invenzione n. 4 in Re minore", da: "" },
-  { file: "assets/audio/frammenti/06.mp3", autore: "vivaldi", titolo: "L'Estate", da: "Le Quattro Stagioni" },
-  { file: "assets/audio/frammenti/07.mp3", autore: "bach", titolo: "Toccata e Fuga in Re minore", da: "" },
-  { file: "assets/audio/frammenti/08.mp3", autore: "bach", titolo: "Suite n. 1 in Sol per violoncello", da: "" },
-  { file: "assets/audio/frammenti/09.mp3", autore: "beethoven", titolo: "Inno alla gioia", da: "Sinfonia n. 9" },
-  { file: "assets/audio/frammenti/10.mp3", autore: "mozart", titolo: "Eine kleine Nachtmusik", da: "" },
-  { file: "assets/audio/frammenti/11.mp3", autore: "beethoven", titolo: "Sonata al chiaro di luna", da: "Sonata per pianoforte n. 14" },
-  { file: "assets/audio/frammenti/12.mp3", autore: "beethoven", titolo: "Per Elisa", da: "Bagatella n. 25" },
-  { file: "assets/audio/frammenti/13.mp3", autore: "mozart", titolo: "Sonata per pianoforte n. 16 in Do, K 545", da: "" },
-  { file: "assets/audio/frammenti/14.mp3", autore: "mozart", titolo: "Rondò alla turca", da: "Sonata per pianoforte n. 11" },
-  { file: "assets/audio/frammenti/15.mp3", autore: "mozart", titolo: "Lacrimosa", da: "Messa da Requiem" },
-  { file: "assets/audio/frammenti/16.mp3", autore: "beethoven", titolo: "Sinfonia n. 5", da: "" },
+  { file: "assets/audio/frammenti/01.mp3?v=2", autore: "bach", titolo: "Aria sulla quarta corda", da: "Suite per orchestra n. 3" },
+  { file: "assets/audio/frammenti/02.mp3?v=2", autore: "vivaldi", titolo: "La Primavera", da: "Le Quattro Stagioni" },
+  { file: "assets/audio/frammenti/03.mp3?v=2", autore: "vivaldi", titolo: "L'Inverno", da: "Le Quattro Stagioni" },
+  { file: "assets/audio/frammenti/04.mp3?v=2", autore: "vivaldi", titolo: "L'Autunno", da: "Le Quattro Stagioni" },
+  { file: "assets/audio/frammenti/05.mp3?v=2", autore: "bach", titolo: "Invenzione n. 4 in Re minore", da: "" },
+  { file: "assets/audio/frammenti/06.mp3?v=2", autore: "vivaldi", titolo: "L'Estate", da: "Le Quattro Stagioni" },
+  { file: "assets/audio/frammenti/07.mp3?v=2", autore: "bach", titolo: "Toccata e Fuga in Re minore", da: "" },
+  { file: "assets/audio/frammenti/08.mp3?v=2", autore: "bach", titolo: "Suite n. 1 in Sol per violoncello", da: "" },
+  { file: "assets/audio/frammenti/09.mp3?v=2", autore: "beethoven", titolo: "Inno alla gioia", da: "Sinfonia n. 9" },
+  { file: "assets/audio/frammenti/10.mp3?v=2", autore: "mozart", titolo: "Eine kleine Nachtmusik", da: "" },
+  { file: "assets/audio/frammenti/11.mp3?v=2", autore: "beethoven", titolo: "Sonata al chiaro di luna", da: "Sonata per pianoforte n. 14" },
+  { file: "assets/audio/frammenti/12.mp3?v=2", autore: "beethoven", titolo: "Per Elisa", da: "Bagatella n. 25" },
+  { file: "assets/audio/frammenti/13.mp3?v=2", autore: "mozart", titolo: "Sonata per pianoforte n. 16 in Do, K 545", da: "" },
+  { file: "assets/audio/frammenti/14.mp3?v=2", autore: "mozart", titolo: "Rondò alla turca", da: "Sonata per pianoforte n. 11" },
+  { file: "assets/audio/frammenti/15.mp3?v=2", autore: "mozart", titolo: "Lacrimosa", da: "Messa da Requiem" },
+  { file: "assets/audio/frammenti/16.mp3?v=2", autore: "beethoven", titolo: "Sinfonia n. 5", da: "" },
 ];
 
 // Gli otto pianoforti: stanza, frammenti (posizione in FRAMMENTI, contando da 0)
