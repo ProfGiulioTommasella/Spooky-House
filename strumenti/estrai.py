@@ -13,7 +13,7 @@ Rigenera assets/img, assets/audio e js/maschere.js.
 import base64, io, json, os, subprocess, sys, tempfile, zipfile
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 QUI = os.path.dirname(os.path.abspath(__file__))
 RADICE = os.path.dirname(QUI)
@@ -68,6 +68,64 @@ def ritaglia(im):
 
 def salva_png(im, nome):
     im.save(os.path.join(IMG, nome), optimize=True)
+
+
+def pianoforte_disegnato(w, h, s=4):
+    """Pianoforte verticale visto dall'alto, tastiera in basso, a w x h unità (176 x 86) per s pixel."""
+    S = 4 * s  # disegno sovracampionato, poi ridotto
+    W, H = round(w * S), round(h * S)
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    u = lambda v: round(v * S)
+    sx = w / 176; sy = h / 86
+    X = lambda v: round(v * sx * S); Y = lambda v: round(v * sy * S)
+    scuro, medio, coperchio = (72, 46, 42), (79, 51, 47), (104, 69, 65)
+    # corpo posteriore e coperchio
+    d.rounded_rectangle((X(1), Y(1), X(175), Y(52)), radius=u(2), fill=medio, outline=(52, 33, 30), width=u(0.8))
+    d.rectangle((X(2), Y(2), X(174), Y(5)), fill=(92, 60, 55))
+    d.rounded_rectangle((X(1), Y(23), X(175), Y(52)), radius=u(1.5), fill=coperchio, outline=(70, 45, 41), width=u(0.6))
+    d.rectangle((X(3), Y(25), X(173), Y(28)), fill=(118, 80, 75))  # riflesso sul coperchio
+    d.line((X(2), Y(50), X(174), Y(50)), fill=(86, 56, 51), width=u(1.2))
+    # fianchi
+    for x0 in (4, 164):
+        d.rounded_rectangle((X(x0), Y(50), X(x0 + 8), Y(85)), radius=u(1), fill=scuro, outline=(50, 31, 28), width=u(0.6))
+    # cassa della tastiera
+    d.rectangle((X(12), Y(52), X(164), Y(81)), fill=(68, 42, 43))
+    d.rectangle((X(12), Y(52), X(164), Y(55)), fill=(88, 57, 52))
+    # tasti bianchi
+    k0, k1, ky0, ky1 = 19, 157, 55.5, 77
+    n = 36
+    passo = (k1 - k0) / n
+    d.rectangle((X(k0), Y(ky0), X(k1), Y(ky1)), fill=(236, 220, 208))
+    for i in range(n):
+        x = k0 + i * passo
+        d.rectangle((X(x), Y(ky0), X(x + passo), Y(ky1)), fill=(238, 224, 212) if i % 2 else (230, 214, 202))
+        d.line((X(x), Y(ky0), X(x), Y(ky1)), fill=(150, 128, 120), width=max(1, u(0.35)))
+    d.line((X(k0), Y(ky1), X(k1), Y(ky1)), fill=(170, 150, 140), width=u(0.6))
+    # tasti neri (2 e 3 per ottava)
+    for i in range(n - 1):
+        if i % 7 in (0, 1, 3, 4, 5):
+            cx = k0 + (i + 1) * passo
+            d.rounded_rectangle((X(cx - passo * 0.32), Y(ky0), X(cx + passo * 0.32), Y(ky0 + 12)), radius=u(0.4), fill=(28, 22, 22))
+            d.line((X(cx - passo * 0.12), Y(ky0 + 1), X(cx - passo * 0.12), Y(ky0 + 10)), fill=(70, 62, 60), width=max(1, u(0.3)))
+    # listello sotto la tastiera
+    d.rectangle((X(12), Y(77.5), X(164), Y(81)), fill=(62, 39, 36))
+    im = im.resize((round(w * s), round(h * s)), Image.LANCZOS)
+    return im
+
+
+def pianoforte_ruotato(pezzo, s=4):
+    """Il pianoforte dello Scratch ridisegnato nitido: si sceglie la rotazione che più gli somiglia."""
+    rif = np.asarray(pezzo.convert("RGBA")).astype(float)
+    migliore = None
+    for giri in range(4):
+        w, h = (pezzo.width, pezzo.height) if giri % 2 == 0 else (pezzo.height, pezzo.width)
+        im = pianoforte_disegnato(w, h, s).rotate(90 * giri, expand=True)
+        prova = np.asarray(im.resize(pezzo.size, Image.LANCZOS)).astype(float)
+        diff = np.abs(prova - rif).mean()
+        if migliore is None or diff < migliore[0]:
+            migliore = (diff, im)
+    return migliore[1]
 
 
 def salva_jpg(im, nome, q=None):
@@ -206,7 +264,8 @@ def main():
             sp = PIANOFORTI[n]
             im = sulla_scena(sp, SPRITE[sp]["costumes"][0]["name"])
             pezzo, box = ritaglia(im)
-            salva_png(pezzo, f"piano-{n}.png")
+            # il disegno dello Scratch è piccolo: lo si ridisegna nitido, a 4 volte la grandezza della stanza
+            salva_png(pianoforte_ruotato(pezzo), f"piano-{n}.png")
             s["piano"] = list(box)
         dati["stanze"][n] = s
 

@@ -66,7 +66,7 @@
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
     "fantasma-sx", "fantasma-dx", "fantasma-libro-sx", "fantasma-libro-dx", "gargoyle-1", "gargoyle-2", "amici", "torcia",
     "chiave-piccola", "chiave-torre", "pallone", "armatura", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=4`));
-  for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png`));
+  for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png?v=2`));
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
   for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png?v=2`;
   for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png?v=3`;
@@ -1297,7 +1297,8 @@
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.7)";
       ctx.shadowBlur = 12;
-      if (img["piano" + id]) disegnaImg("piano" + id, x1, y1, 1, 0, fatto ? 0.8 : 1, 0, 0);
+      // l'immagine è in alta risoluzione: si disegna grande come il riquadro del pianoforte
+      if (img["piano" + id] && img["piano" + id].naturalWidth) ctx.drawImage(img["piano" + id], x1, y1, x2 - x1, y2 - y1);
       ctx.restore();
       if (!fatto) {
         ctx.save();
