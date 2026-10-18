@@ -691,9 +691,9 @@
     if (pf && !g.pianiFatti.has(id)) pf.frammenti.forEach((n) => preparaBrano(n));
     aggiornaPannello();
     aggiornaAtmosfera();
-    eventiIngresso(id, nuova);
+    eventiIngresso(id, nuova, prima);
   }
-  function eventiIngresso(id, nuova) {
+  function eventiIngresso(id, nuova, prima) {
     if (id === 1 && !g.eventi.has("benvenuto")) {
       g.eventi.add("benvenuto");
       // il ragazzo resta fermo finché i compositori non si presentano, così il dialogo arriva subito e qui
@@ -707,7 +707,9 @@
       }, 1500);
     }
     if (id === 7) {
-      if (!ha("torcia")) { suona("bambino", 0.7); setTimeout(() => pensiero("buioSenzaTorcia"), 600); }
+      // come nello Scratch: entrando dalla biblioteca parte il sottofondo pauroso, con o senza torcia
+      if (prima !== 8) suona("bambino", 0.8);
+      if (!ha("torcia")) setTimeout(() => pensiero("buioSenzaTorcia"), 600);
       else if (!g.eventi.has("buioConTorcia")) { g.eventi.add("buioConTorcia"); setTimeout(() => pensiero("buioConTorcia"), 600); }
     }
     if (id === 14 && !g.eventi.has("torcia")) {
