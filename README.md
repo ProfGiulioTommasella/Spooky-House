@@ -33,7 +33,7 @@ dei 16 brani, che si possono riascoltare.
 ## Come si gioca
 
 Funziona su PC e tablet in orizzontale. Si cammina con le frecce o W A S D, oppure tenendo
-premuto il dito (o il mouse) nel punto dove si vuole andare; il ragazzo guarda verso il mouse.
+premuto il dito (o il mouse) nel punto dove si vuole andare; il ragazzo (e la torcia) guarda dove cammina.
 Al pianoforte si risponde dopo aver ascoltato almeno tre quarti del frammento, toccando il ritratto
 (o con i tasti 1 e 2): i nomi dei compositori compaiono solo dopo la risposta, quindi bisogna
 riconoscerli dal volto. Invio per andare avanti.

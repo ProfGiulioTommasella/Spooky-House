@@ -407,8 +407,6 @@
   // ---------------------------------------------------------------
   const tasti = new Set();
   const puntatore = { attivo: false, x: 0, y: 0, id: null };
-  // dove sta il mouse (anche senza clic): il ragazzo guarda da quella parte
-  const mira = { attivo: false, x: 0, y: 0 };
   window.addEventListener("keydown", (e) => {
     tasti.add(e.key.toLowerCase());
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(e.key.toLowerCase())) e.preventDefault();
@@ -432,17 +430,12 @@
     try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* niente */ }
   });
   canvas.addEventListener("pointermove", (e) => {
-    if (e.pointerType === "mouse") {
-      [mira.x, mira.y] = nellaStanza(e);
-      mira.attivo = mira.x <= RW;
-    }
     if (!puntatore.attivo || e.pointerId !== puntatore.id) return;
     [puntatore.x, puntatore.y] = nellaStanza(e);
   });
   const lascia = (e) => { if (e.pointerId === puntatore.id) puntatore.attivo = false; };
   canvas.addEventListener("pointerup", lascia);
   canvas.addEventListener("pointercancel", lascia);
-  canvas.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") mira.attivo = false; });
 
   // ---------------------------------------------------------------
   //  Pensieri, banner e voci
@@ -754,11 +747,9 @@
     const l = Math.hypot(vx, vy);
     g.inMoto = false;
     const fermo = !l || g.caduta > 0 || g.transizione;
-    // lo sguardo segue il mouse; senza mouse, la direzione in cui si cammina
-    let guarda = null;
-    if (mira.attivo && dist(mira.x, mira.y, g.x, g.y) > 4) guarda = Math.atan2(mira.y - g.y, mira.x - g.x);
-    else if (!fermo) guarda = Math.atan2(vy, vx);
-    if (guarda !== null) {
+    // il ragazzo (e la torcia) guarda dove cammina; da fermo resta girato com'era
+    if (!fermo) {
+      const guarda = Math.atan2(vy, vx);
       const diff = Math.atan2(Math.sin(guarda - g.ang), Math.cos(guarda - g.ang));
       g.ang += diff * Math.min(1, dt * 14);
     }
