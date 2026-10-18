@@ -182,6 +182,17 @@ const STANZE = {
   },
 };
 
+// Candele di coraggio da ritrovare (coordinate Scratch): ognuna riaccende una candela
+// spenta dai fantasmi; se le candele sono già tutte accese resta dov'è.
+const CANDELE = {
+  2: [90, -80],
+  4: [110, 0],
+  10: [170, 80],
+  12: [-20, 50],
+  16: [-90, 90],
+  19: [-165, 15],
+};
+
 // Dove compaiono gli oggetti (coordinate Scratch); se manca, la posizione
 // viene da js/maschere.js.
 const POSIZIONI_OGGETTI = {

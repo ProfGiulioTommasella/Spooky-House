@@ -11,6 +11,13 @@
   const RH = 720;
   const VELOCITA = 250; // pixel al secondo del ragazzo
   const RAGGIO = 13; // raggio del ragazzo per gli urti con i muri
+  // Candele di coraggio: ogni spavento ne spegne una; senza candele si sviene e ci si
+  // risveglia all'ingresso del piano (i pianoforti già suonati restano). Nelle stanze se ne
+  // ritrovano altre (CANDELE in js/stanze.js). Dopo uno spavento c'è un po' di paura.
+  const CANDELE_MAX = 3;
+  const PAURA = { durata: 3.5, lentezza: 0.55 }; // secondi, e velocità rispetto al normale
+  // dove ci si risveglia, piano per piano: [stanza, arrivo]
+  const INGRESSI_PIANO = { terra: [1, [-172, 3]], primo: [9, [-186, -86]], torre: [15, [146, 0]], seminterrato: [18, [-185, 90]] };
   const VEL_GUARDIANI = 135;
   const SCALA_FANTASMA = 0.3;
   const SCALA_RAGAZZO = 0.75;
@@ -351,7 +358,8 @@
   let personaggio = "ragazzo";
   try { if (localStorage.getItem("sh-personaggio") === "ragazza") personaggio = "ragazza"; } catch (e) { /* niente */ }
   // le poche frasi che parlano al protagonista, volte al femminile (le traduzioni restano quelle)
-  const AL_FEMMINILE = [["Ma attento", "Ma attenta"], ["Dai fifone", "Dai fifona"], ["il nostro eroe", "la nostra eroina"], ["SALVO PER", "SALVA PER"]];
+  const AL_FEMMINILE = [["Ma attento", "Ma attenta"], ["Dai fifone", "Dai fifona"], ["il nostro eroe", "la nostra eroina"], ["SALVO PER", "SALVA PER"],
+    ["più coraggioso", "più coraggiosa"], ["sono svenuto", "sono svenuta"], ["risvegliato", "risvegliata"]];
   const genere = (t) => (personaggio === "ragazza" ? AL_FEMMINILE.reduce((s, [m, f]) => s.replace(m, f), t) : t);
   function impostaPersonaggio(p) {
     personaggio = p === "ragazza" ? "ragazza" : "ragazzo";
@@ -413,6 +421,9 @@
       visitate: new Set(),
       eventi: new Set(),
       spaventi: 0,
+      candele: CANDELE_MAX,
+      candelePrese: new Set(),
+      paura: 0,
       tempo: 0,
       tStanza: 0,
       armato: false,
@@ -579,6 +590,7 @@
     $("n-punti").textContent = punti();
     [...zainoEl.children].forEach((d) => d.classList.toggle("preso", ha(d.dataset.oggetto)));
     $("spaventi").textContent = "👻 " + g.spaventi;
+    [...$("candele").children].forEach((c, i) => c.classList.toggle("spenta", i >= g.candele));
     disegnaMappa();
   }
   function aggiornaTempo() {
@@ -799,8 +811,10 @@
     vx /= l;
     vy /= l;
     const dir = Math.atan2(vy, vx);
-    const nx = g.x + vx * VELOCITA * dt;
-    const ny = g.y + vy * VELOCITA * dt;
+    // con la paura le gambe tremano: si cammina più piano
+    const vel = VELOCITA * (g.paura > 0 ? PAURA.lentezza : 1);
+    const nx = g.x + vx * vel * dt;
+    const ny = g.y + vy * vel * dt;
     const x0 = g.x;
     const y0 = g.y;
     if (libero(nx, ny)) { g.x = nx; g.y = ny; }
@@ -811,8 +825,8 @@
       const a1 = dir + 0.7;
       const a2 = dir - 0.7;
       for (const a of [a1, a2]) {
-        const sx = g.x + Math.cos(a) * VELOCITA * dt * 0.7;
-        const sy = g.y + Math.sin(a) * VELOCITA * dt * 0.7;
+        const sx = g.x + Math.cos(a) * vel * dt * 0.7;
+        const sy = g.y + Math.sin(a) * vel * dt * 0.7;
         if (libero(sx, sy)) { g.x = sx; g.y = sy; break; }
       }
     }
@@ -1099,14 +1113,36 @@
   }
   function spavento() {
     g.spaventi++;
+    g.candele = Math.max(0, g.candele - 1);
     suona("risata");
-    g.scossa = 0.45;
+    g.scossa = 0.9;
     g.lampo = 0.8;
     scritta(PENSIERI.spavento, g.x, g.y - 40, "#e9fff5");
-    [g.x, g.y] = g.ingresso;
-    g.invuln = 1.8;
     g.armato = false;
     puntatore.attivo = false;
+    aggiornaPannello();
+    if (g.candele === 0) { sviene(); return; }
+    [g.x, g.y] = g.ingresso;
+    g.invuln = 1.8;
+    g.paura = PAURA.durata;
+  }
+  // senza più candele: tutto si fa buio e ci si risveglia all'ingresso del piano
+  function sviene() {
+    const ingresso = INGRESSI_PIANO[STANZE[g.stanza].piano];
+    g.invuln = 99;
+    if (!ingresso) { g.candele = CANDELE_MAX; g.invuln = 1.8; return; }
+    g.transizione = { fase: "sviene", t: 0, verso: ingresso[0], arrivo: ingresso[1] };
+  }
+  function prendiCandela() {
+    const pos = CANDELE[g.stanza];
+    if (!pos || g.candelePrese.has(g.stanza) || g.candele >= CANDELE_MAX) return;
+    const [x, y] = P(pos);
+    if (dist(x, y, g.x, g.y) > 34) return;
+    g.candelePrese.add(g.stanza);
+    g.candele++;
+    suona("magia", 0.7);
+    scritta("+1 🕯", x, y - 30, "#ffe2a0");
+    pensiero("candelaPresa");
     aggiornaPannello();
   }
 
@@ -1201,6 +1237,19 @@
       } else if (tr_.fase === "luce") {
         g.velo = Math.max(0, 1 - tr_.t / 0.3);
         if (tr_.t >= 0.3) g.transizione = null;
+      } else if (tr_.fase === "sviene") {
+        g.velo = Math.min(1, tr_.t / 0.9);
+        if (tr_.t >= 1.8) { entra(tr_.verso, tr_.arrivo); tr_.fase = "risveglio"; tr_.t = 0; }
+      } else if (tr_.fase === "risveglio") {
+        g.velo = Math.max(0, 1 - tr_.t / 1.2);
+        if (tr_.t >= 1.2) {
+          g.transizione = null;
+          g.candele = CANDELE_MAX;
+          g.paura = 0;
+          g.invuln = 1.5;
+          aggiornaPannello();
+          pensiero("risveglio");
+        }
       } else if (tr_.fase === "finale") {
         g.velo = Math.min(1, tr_.t / 1.2);
         if (tr_.t >= 1.3) { g.transizione = null; finale(); }
@@ -1212,6 +1261,7 @@
     if (stato !== "gioco") return;
     g.tStanza += dt;
     g.invuln = Math.max(0, g.invuln - dt);
+    if (g.paura > 0) { g.paura = Math.max(0, g.paura - dt); g.scossa = Math.max(g.scossa, 0.12); }
     if (g.torciaCade > 0) g.torciaCade = Math.max(0, g.torciaCade - dt / 1.1);
     if (g.caduta > 0) {
       g.caduta -= dt / 0.9;
@@ -1237,6 +1287,7 @@
     controllaArmadio(dt);
     controllaBuioTotale(dt);
     controllaOggetti();
+    prendiCandela();
     controllaBuchi();
     controllaPianoforte();
     aggiornaFantasma(dt);
@@ -1294,6 +1345,35 @@
     ctx.fillStyle = `rgba(0,0,0,${a})`;
     ctx.beginPath();
     ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  const candelaVisibile = () => CANDELE[g.stanza] && !g.candelePrese.has(g.stanza);
+  function disegnaCandela(x, y, t) {
+    const fiamma = 1 + Math.sin(t * 17) * 0.08 + Math.sin(t * 7.1) * 0.06;
+    luce(x, y - 18, 70, "rgba(255,200,110,A)", 0.5 + 0.1 * Math.sin(t * 9));
+    ombra(x + 2, y + 4, 15, 7, 0.4);
+    ctx.save();
+    ctx.translate(x, y);
+    // piattino
+    ctx.fillStyle = "#8a6a2e";
+    ctx.beginPath(); ctx.ellipse(0, 0, 14, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#3a2a10"; ctx.lineWidth = 1.5; ctx.stroke();
+    // cera
+    const cera = ctx.createLinearGradient(-6, 0, 6, 0);
+    cera.addColorStop(0, "#e8dcc0"); cera.addColorStop(0.5, "#fff8e6"); cera.addColorStop(1, "#cfc2a2");
+    ctx.fillStyle = cera;
+    ctx.fillRect(-6, -24, 12, 24);
+    ctx.strokeStyle = "#7a6a4a"; ctx.lineWidth = 1; ctx.strokeRect(-6, -24, 12, 24);
+    // stoppino e fiamma
+    ctx.strokeStyle = "#222"; ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(0, -28); ctx.stroke();
+    ctx.translate(0, -29);
+    ctx.scale(1, fiamma);
+    const fg = ctx.createRadialGradient(0, -3, 0, 0, -3, 9);
+    fg.addColorStop(0, "#fffbe0"); fg.addColorStop(0.45, "#ffd36a"); fg.addColorStop(1, "rgba(255,120,30,0)");
+    ctx.fillStyle = fg;
+    ctx.beginPath();
+    ctx.moveTo(0, -14); ctx.quadraticCurveTo(7, -2, 0, 3); ctx.quadraticCurveTo(-7, -2, 0, -14);
     ctx.fill();
     ctx.restore();
   }
@@ -1357,6 +1437,9 @@
         ctx.restore();
       }
     }
+
+    // candela di coraggio da raccogliere
+    if (candelaVisibile()) disegnaCandela(...P(CANDELE[id]), t);
 
     // oggetti
     const o = oggettoVisibile();
@@ -1519,7 +1602,11 @@
       bctx.fillRect(0, 0, buio.width, buio.height);
     };
     const tremola = Math.sin(t * 13) * 5 + Math.sin(t * 7.3) * 4;
-    if (torcia) {
+    // con la paura la torcia sfarfalla
+    const sfarfalla = g.paura > 0 && Math.sin(t * 29) * Math.sin(t * 11.7) > 0.25;
+    if (torcia && sfarfalla) {
+      buca(g.x, g.y, 70 + tremola * 0.5, 0.6);
+    } else if (torcia) {
       // la luce è spostata in avanti: poca alle spalle, di più dove si guarda
       const cx = Math.cos(g.ang);
       const cy = Math.sin(g.ang);
@@ -1533,6 +1620,7 @@
     if (piano && !g.pianiFatti.has(g.stanza)) buca((piano[0] + piano[2]) / 2, (piano[1] + piano[3]) / 2, 170 + tremola, 0.85);
     const o = oggettoVisibile();
     if (o) { const [ox, oy] = posizioneOggetto(o); buca(ox, oy, 90, 0.8); }
+    if (candelaVisibile()) { const [cx, cy] = P(CANDELE[g.stanza]); buca(cx, cy - 10, 110 + tremola, 0.85); }
     ctx.drawImage(buio, 0, 0, RW, RH);
     if (corridoioChiuso()) {
       const gr = ctx.createLinearGradient(LIMITE_BUIO - 140, 0, LIMITE_BUIO, 0);
@@ -2048,5 +2136,6 @@
     entra(s, arrivo ? arrivo.arrivo : STANZE[0].partenza);
     g.velo = 0;
     window.statoGioco = g; // per le prove automatiche
+    window.provaSpavento = spavento;
   }
 })();

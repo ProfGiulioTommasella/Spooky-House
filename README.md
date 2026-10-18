@@ -25,6 +25,10 @@ Per arrivare a tutti i pianoforti bisogna:
 - prendere la **chiave della torre** e scappare dalle **armature** che si svegliano
   (se ti prendono, la chiave torna al suo posto): apre il passaggio segreto;
 - schivare i **fantasmi** e non cadere nei **buchi** del pavimento (si torna all'ingresso della stanza).
+  Si parte con **3 candele di coraggio** (in basso nel pannello): ogni spavento ne spegne una e per
+  qualche secondo c'è la paura (lo schermo trema, si cammina più piano, la torcia sfarfalla).
+  Senza più candele si sviene e ci si risveglia all'ingresso del piano con 3 candele, ma i pianoforti
+  già suonati restano. Altre candele si ritrovano in alcune stanze (`CANDELE` in `js/stanze.js`).
 
 Nelle stanze con un pianoforte il fantasma si sveglia solo dopo averlo suonato.
 Quando tutti i pianoforti hanno suonato, il pallone compare nello scantinato: lo si prende,

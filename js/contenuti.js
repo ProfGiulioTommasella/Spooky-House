@@ -130,6 +130,8 @@ const PENSIERI = {
   cucinaChiusa: "Chiusa... forse mi è sfuggito un pianoforte...",
   ahia: "AHIA!",
   spavento: "BUUU!",
+  candelaPresa: "Una candela! Mi sento un po' più coraggioso.",
+  risveglio: "Che spavento... sono svenuto! Mi sono risvegliato qui, ma i pianoforti che ho suonato restano suonati.",
   guardiani: "Le armature si sono svegliate! Scappa!",
   presoDaiGuardiani: "Le armature mi hanno preso la chiave!",
   palloneVisto: "Il mio pallone! Finalmente!",
