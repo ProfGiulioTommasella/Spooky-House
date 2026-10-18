@@ -18,7 +18,7 @@
   const PAURA = { durata: 3.5, lentezza: 0.55 }; // secondi, e velocità rispetto al normale
   // dove ci si risveglia, piano per piano: [stanza, arrivo]
   const INGRESSI_PIANO = { terra: [1, [-172, 3]], primo: [9, [-186, -86]], torre: [15, [146, 0]], seminterrato: [18, [-185, 90]] };
-  const VEL_GUARDIANI = 135;
+  const VEL_GUARDIANI = 155;
   const SCALA_FANTASMA = 0.3;
   const SCALA_RAGAZZO = 0.75;
   const OGGETTI_ZAINO = ["chiave-piccola", "torcia", "chiave-torre", "pallone"];
