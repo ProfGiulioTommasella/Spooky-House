@@ -373,7 +373,21 @@
   // ---------------------------------------------------------------
   let stato = "titolo"; // titolo | intro | gioco | dialogo | piano | finale
   const g = {};
+  // A ogni partita i brani si mescolano fra i pianoforti con la stessa coppia di compositori
+  // (gli 8 barocchi fra i 4 di Bach e Vivaldi, gli 8 classici fra i 4 di Mozart e Beethoven),
+  // e i due ritratti cambiano lato a caso: chi rigioca non può imparare le risposte a memoria.
+  function mescolaPianoforti() {
+    const mescola = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const gruppi = {};
+    for (const pf of PIANOFORTI) (gruppi[[...pf.scelta].sort().join()] ||= []).push(pf);
+    for (const lista of Object.values(gruppi)) {
+      const brani = mescola(lista.flatMap((pf) => pf.frammenti));
+      lista.forEach((pf, i) => { pf.frammenti = brani.slice(i * 2, i * 2 + 2); });
+    }
+    for (const pf of PIANOFORTI) if (Math.random() < 0.5) pf.scelta = [pf.scelta[1], pf.scelta[0]];
+  }
   function nuovaPartita() {
+    mescolaPianoforti();
     Object.assign(g, {
       stanza: 0,
       x: 0, y: 0,

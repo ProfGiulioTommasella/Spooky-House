@@ -12,6 +12,8 @@ torre e seminterrato. Appena si entra la porta si chiude alle spalle e i fantasm
 spiegano la sfida: in casa ci sono **otto pianoforti** e il pallone torna solo dopo averli fatti
 suonare tutti. Ogni pianoforte fa ascoltare **due frammenti**: per ognuno si sceglie chi l'ha scritto
 (Vivaldi o Bach al piano terra e nel salone, Mozart o Beethoven nelle altre stanze).
+A ogni partita i brani si mescolano fra i pianoforti della stessa coppia di compositori
+e i due ritratti cambiano lato, così non si possono imparare le risposte a memoria.
 Dopo ogni risposta compare il cartiglio con il titolo del brano e una breve scheda del compositore.
 
 Per arrivare a tutti i pianoforti bisogna:
