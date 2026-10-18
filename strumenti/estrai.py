@@ -213,6 +213,16 @@ def main():
     # Copertine e sfondi del pianoforte (in Canva hanno lo stesso nome, senza spazi in fondo)
     for nome, file in [("Copertina 1 ", "copertina"), ("Copertina 2", "casa"), ("Copertina 3", "casa-fantasmi"), ("Copertina END", "fine")]:
         hd = file_hd(nome.strip())
+        if hd and file == "copertina":
+            # in Canva la copertina ha due strisce di riempimento ai lati (84 px su 3840): si tolgono,
+            # e per restare in 4:3 si toglie un po' anche sopra e sotto (sotto c'è la firma)
+            im = Image.open(hd).convert("RGBA")
+            w, h = im.size
+            x0, x1 = round(w * 84 / 3840), w - round(w * 85 / 3840)
+            alto = round((x1 - x0) * 3 / 4)
+            y0 = round((h - alto) * 0.7)
+            salva_jpg(im.crop((x0, y0, x1, y0 + alto)).resize((960 * LATO_HD, 720 * LATO_HD), Image.LANCZOS), f"{file}.jpg")
+            continue
         salva_jpg(Image.open(hd).convert("RGBA").resize((960 * LATO_HD, 720 * LATO_HD), Image.LANCZOS) if hd else sulla_scena("Sfondo", nome), f"{file}.jpg")
     for colore in ["blu", "carta", "legno"]:
         nome = "sfondo " + colore
