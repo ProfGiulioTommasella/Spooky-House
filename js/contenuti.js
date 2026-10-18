@@ -7,7 +7,7 @@
 //  Le stanze, le porte e i fantasmi stanno in js/stanze.js.
 // ================================================================
 
-// I quattro compositori: nome sul pulsante, date, città e una riga di presentazione.
+// I quattro compositori: nome sul pulsante, date, epoca e una riga di presentazione.
 const COMPOSITORI = {
   bach: {
     nome: "Bach",
@@ -40,23 +40,40 @@ const COMPOSITORI = {
 };
 
 // I 16 frammenti, nell'ordine del progetto Scratch.
+// info: due righe sul brano, mostrate dopo la risposta.
 const FRAMMENTI = [
-  { file: "assets/audio/frammenti/01.mp3?v=2", autore: "bach", titolo: "Aria sulla quarta corda", da: "Suite per orchestra n. 3" },
-  { file: "assets/audio/frammenti/02.mp3?v=2", autore: "vivaldi", titolo: "La Primavera", da: "Le Quattro Stagioni" },
-  { file: "assets/audio/frammenti/03.mp3?v=2", autore: "vivaldi", titolo: "L'Inverno", da: "Le Quattro Stagioni" },
-  { file: "assets/audio/frammenti/04.mp3?v=2", autore: "vivaldi", titolo: "L'Autunno", da: "Le Quattro Stagioni" },
-  { file: "assets/audio/frammenti/05.mp3?v=2", autore: "bach", titolo: "Invenzione n. 4 in Re minore", da: "" },
-  { file: "assets/audio/frammenti/06.mp3?v=2", autore: "vivaldi", titolo: "L'Estate", da: "Le Quattro Stagioni" },
-  { file: "assets/audio/frammenti/07.mp3?v=2", autore: "bach", titolo: "Toccata e Fuga in Re minore", da: "" },
-  { file: "assets/audio/frammenti/08.mp3?v=2", autore: "bach", titolo: "Suite n. 1 in Sol per violoncello", da: "" },
-  { file: "assets/audio/frammenti/09.mp3?v=2", autore: "beethoven", titolo: "Inno alla gioia", da: "Sinfonia n. 9" },
-  { file: "assets/audio/frammenti/10.mp3?v=2", autore: "mozart", titolo: "Eine kleine Nachtmusik", da: "" },
-  { file: "assets/audio/frammenti/11.mp3?v=2", autore: "beethoven", titolo: "Sonata al chiaro di luna", da: "Sonata per pianoforte n. 14" },
-  { file: "assets/audio/frammenti/12.mp3?v=2", autore: "beethoven", titolo: "Per Elisa", da: "Bagatella n. 25" },
-  { file: "assets/audio/frammenti/13.mp3?v=2", autore: "mozart", titolo: "Sonata per pianoforte n. 16 in Do, K 545", da: "" },
-  { file: "assets/audio/frammenti/14.mp3?v=2", autore: "mozart", titolo: "Rondò alla turca", da: "Sonata per pianoforte n. 11" },
-  { file: "assets/audio/frammenti/15.mp3?v=2", autore: "mozart", titolo: "Lacrimosa", da: "Messa da Requiem" },
-  { file: "assets/audio/frammenti/16.mp3?v=2", autore: "beethoven", titolo: "Sinfonia n. 5", da: "" },
+  { file: "assets/audio/frammenti/01.mp3?v=2", autore: "bach", titolo: "Aria sulla quarta corda", da: "Suite per orchestra n. 3",
+    info: "Scritta verso il 1730 per orchestra d'archi. Il nome viene da un violinista che la suonava tutta su una sola corda, la più grave." },
+  { file: "assets/audio/frammenti/02.mp3?v=2", autore: "vivaldi", titolo: "La Primavera", da: "Le Quattro Stagioni",
+    info: "Concerto per violino e orchestra del 1725. Il violino imita il canto degli uccelli, i ruscelli e perfino un temporale." },
+  { file: "assets/audio/frammenti/03.mp3?v=2", autore: "vivaldi", titolo: "L'Inverno", da: "Le Quattro Stagioni",
+    info: "Il violino fa sentire il freddo pungente, i denti che battono e il vento gelido. Vivaldi accompagnò ogni stagione con una poesia." },
+  { file: "assets/audio/frammenti/04.mp3?v=2", autore: "vivaldi", titolo: "L'Autunno", da: "Le Quattro Stagioni",
+    info: "Racconta la festa dei contadini per la vendemmia, con balli e vino, e poi una caccia nei boschi all'alba." },
+  { file: "assets/audio/frammenti/05.mp3?v=2", autore: "bach", titolo: "Invenzione n. 4 in Re minore", da: "",
+    info: "Bach scrisse le 15 Invenzioni a due voci per insegnare a suonare a figli e allievi: le due mani dialogano come due voci." },
+  { file: "assets/audio/frammenti/06.mp3?v=2", autore: "vivaldi", titolo: "L'Estate", da: "Le Quattro Stagioni",
+    info: "Descrive il caldo afoso che stanca uomini e animali, il canto del cuculo e un violento temporale estivo." },
+  { file: "assets/audio/frammenti/07.mp3?v=2", autore: "bach", titolo: "Toccata e Fuga in Re minore", da: "",
+    info: "Pezzo per organo famoso per il suo inizio drammatico. Si sente spesso nei film dell'orrore: perfetto per una casa infestata!" },
+  { file: "assets/audio/frammenti/08.mp3?v=2", autore: "bach", titolo: "Suite n. 1 in Sol per violoncello", da: "",
+    info: "Bach scrisse sei Suite per violoncello solo, senza accompagnamento. Rimasero quasi dimenticate finché Pablo Casals le rese famose." },
+  { file: "assets/audio/frammenti/09.mp3?v=2", autore: "beethoven", titolo: "Inno alla gioia", da: "Sinfonia n. 9",
+    info: "Ultima parte della Nona Sinfonia (1824), con coro e solisti. Beethoven era ormai sordo. Oggi è l'inno dell'Unione Europea." },
+  { file: "assets/audio/frammenti/10.mp3?v=2", autore: "mozart", titolo: "Eine kleine Nachtmusik", da: "",
+    info: "Il titolo significa «Una piccola serenata notturna». Mozart la scrisse nel 1787 per un gruppo di strumenti ad arco." },
+  { file: "assets/audio/frammenti/11.mp3?v=2", autore: "beethoven", titolo: "Sonata al chiaro di luna", da: "Sonata per pianoforte n. 14",
+    info: "Il nome non è di Beethoven: lo inventò un critico, perché il primo movimento gli ricordava la luna che si specchia su un lago." },
+  { file: "assets/audio/frammenti/12.mp3?v=2", autore: "beethoven", titolo: "Per Elisa", da: "Bagatella n. 25",
+    info: "Breve pezzo per pianoforte, ritrovato e pubblicato solo dopo la morte di Beethoven. Non si sa con certezza chi fosse Elisa." },
+  { file: "assets/audio/frammenti/13.mp3?v=2", autore: "mozart", titolo: "Sonata per pianoforte n. 16 in Do, K 545", da: "",
+    info: "Mozart la scrisse nel 1788 e la definì «per principianti»: ancora oggi è una delle sonate più suonate da chi studia pianoforte." },
+  { file: "assets/audio/frammenti/14.mp3?v=2", autore: "mozart", titolo: "Rondò alla turca", da: "Sonata per pianoforte n. 11",
+    info: "Ultima parte di una sonata per pianoforte. Imita le bande militari turche, con tamburi e piatti, molto di moda a Vienna." },
+  { file: "assets/audio/frammenti/15.mp3?v=2", autore: "mozart", titolo: "Lacrimosa", da: "Messa da Requiem",
+    info: "Fa parte del Requiem, la messa per i defunti. Mozart morì mentre lo scriveva: lo completò il suo allievo Süssmayr." },
+  { file: "assets/audio/frammenti/16.mp3?v=2", autore: "beethoven", titolo: "Sinfonia n. 5", da: "",
+    info: "Le quattro note iniziali, «ta-ta-ta-taaa», sono fra le più famose della musica. Si dice che siano il destino che bussa alla porta." },
 ];
 
 // Gli otto pianoforti: stanza, frammenti (posizione in FRAMMENTI, contando da 0)

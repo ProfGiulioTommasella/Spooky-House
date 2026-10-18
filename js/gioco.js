@@ -1880,8 +1880,8 @@
     aggiungiTraduzione(brano, fr.titolo);
     if (fr.da) aggiungiTraduzione(brano, "da " + fr.da);
     const scheda = $("esito-scheda");
-    scheda.textContent = `${c.date} · ${c.epoca}. ${c.scheda}`;
-    const ts = tr(c.scheda);
+    scheda.textContent = `${c.date} · ${c.epoca}. ${fr.info}`;
+    const ts = tr(fr.info);
     if (ts) { const sp = document.createElement("span"); sp.className = "trad"; sp.lang = lingua; sp.textContent = `${tr(c.epoca) || c.epoca}. ${ts}`; scheda.appendChild(sp); }
     scriviPulsante($("btn-avanti"), "", pf.parte === 0 ? TESTI_PIANO.avanti : TESTI_PIANO.fine);
     setTimeout(() => {
