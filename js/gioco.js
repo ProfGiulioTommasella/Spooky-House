@@ -1279,7 +1279,8 @@
   }
 
   function disegnaRagazzo(t) {
-    const torcia = ha("torcia");
+    // la torcia in mano solo nelle stanze buie
+    const torcia = ha("torcia") && !!STANZE[g.stanza].buio;
     let nome = torcia ? "ragazzo-torcia-fermo" : "ragazzo-fermo";
     if (g.inMoto) {
       const passo = Math.floor(g.fasePasso / 0.2) % 2;
