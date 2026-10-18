@@ -392,8 +392,10 @@ def main():
         "schiocco": ("Torcia", "Finger Snap"), "pietra": ("Gargoyle su", "stone-moving"), "ringhio": ("Gargoyle su", "cane-che-ringhia"),
         "calcio": ("Pulsante Start 1", "Calcio a pallone"), "vetri": ("Pulsante Start 1", "Finestra rotta"),
     }
+    # i passi nell'originale sono quasi impercettibili: si alzano di 31 dB (picco a circa -6 dB)
+    filtri = {"passi": "volume=31dB"}
     for file, (sp, nome) in effetti.items():
-        mp3(suono(sp, nome), file + ".mp3")
+        mp3(suono(sp, nome), file + ".mp3", filtro=filtri.get(file))
     for s in SPRITE["Piano"]["sounds"]:
         n = int(s["name"].split()[0])
         mp3(s["md5ext"], f"frammenti/{n:02d}.mp3", mono=False, kbps=128, filtro="loudnorm=I=-18:TP=-1.5")

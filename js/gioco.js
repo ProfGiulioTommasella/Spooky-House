@@ -114,7 +114,8 @@
   //  Suoni
   // ---------------------------------------------------------------
   const NOMI_SUONI = ["passi", "caduta", "porta", "chiuso", "fantasma", "risata", "bambino", "magia", "raccogli", "giusto",
-    "sbagliato", "ingranaggi", "armatura", "schiocco", "pietra", "ringhio", "calcio", "vetri"];
+    "sbagliato", "ingranaggi", "armatura", "schiocco", "pietra", "ringhio", "calcio", "vetri",
+    "cigolio1", "cigolio2", "cigolio3", "cigolio4"];
   const leggi = (c) => { try { return localStorage.getItem(c) === "1"; } catch (e) { return false; } };
   const scrivi = (c, v) => { try { localStorage.setItem(c, v ? "1" : "0"); } catch (e) { /* niente */ } };
   let mutoEffetti = leggi("sh-muto-effetti");
@@ -178,7 +179,7 @@
   preparaSuoni();
   ["pointerdown", "keydown", "touchend"].forEach((ev) => document.addEventListener(ev, sbloccaAudio, true));
 
-  function suona(nome, volume = 1) {
+  function suona(nome, volume = 1, velocita = 1) {
     if (mutoEffetti) return;
     if (buffer[nome] && actx) {
       try {
@@ -186,6 +187,7 @@
         zittisci(nome);
         const s = actx.createBufferSource();
         s.buffer = buffer[nome];
+        s.playbackRate.value = velocita;
         const v = actx.createGain();
         v.gain.value = volume;
         s.connect(v).connect(volumeEffetti);
@@ -212,6 +214,24 @@
     if (inCorso[nome]) { try { inCorso[nome].stop(); } catch (e) { /* niente */ } delete inCorso[nome]; }
     const a = suoni[nome];
     if (a) { a.pause(); a.currentTime = 0; }
+  }
+
+  // Passi del ragazzo: sul legno suonano un po' più cupi e ogni tanto le assi cigolano
+  const PAVIMENTO_LEGNO = new Set([1, 3, 6, 8, 11, 13, 14, 15, 17, 18, 19, 20]);
+  let prossimoCigolio = 0;
+  let ultimoCigolio = 0;
+  function passo() {
+    const legno = PAVIMENTO_LEGNO.has(Number(g.stanza));
+    const varia = 0.94 + Math.random() * 0.12;
+    suona("passi", legno ? 0.3 : 0.25, legno ? varia * 0.88 : varia);
+    if (!legno) return;
+    const ora = performance.now();
+    if (ora < prossimoCigolio || Math.random() > 0.3) return;
+    let n;
+    do n = 1 + Math.floor(Math.random() * 4); while (n === ultimoCigolio);
+    ultimoCigolio = n;
+    prossimoCigolio = ora + 1500 + Math.random() * 2000;
+    suona("cigolio" + n, 0.16 + Math.random() * 0.08, 0.9 + Math.random() * 0.2);
   }
 
   // Rumori di fondo della casa: vento e un bordone grave, generati dal browser
@@ -1186,7 +1206,7 @@
     if (g.inMoto) {
       g.fasePasso += dt;
       g.timerPassi -= dt;
-      if (g.timerPassi <= 0) { g.timerPassi = 0.42; suona("passi", 0.35); }
+      if (g.timerPassi <= 0) { g.timerPassi = 0.42; passo(); }
     } else {
       g.timerPassi = 0;
     }
