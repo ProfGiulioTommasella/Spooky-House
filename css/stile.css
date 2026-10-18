@@ -159,6 +159,8 @@ button {
   color: #5e5578;
 }
 #pianoforti .pf.fatto { background: linear-gradient(#f7d77a, #c8952c); color: #2a1a0e; border-color: #000; box-shadow: 0 0 8px rgba(255, 210, 110, 0.5); }
+#pianoforti .pf.fatto.tutti { background: linear-gradient(#9be88a, #3f9a34); box-shadow: 0 0 8px rgba(120, 230, 110, 0.55); }
+#pianoforti .pf.fatto.nessuno { background: linear-gradient(#f08a7a, #b3342a); box-shadow: 0 0 8px rgba(240, 100, 90, 0.55); }
 #punti { font-size: 22px; color: #fff3d6; }
 #punti b { font-size: 30px; color: var(--oro); }
 #zaino { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }

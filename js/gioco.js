@@ -591,6 +591,10 @@
     [...pianofortiEl.children].forEach((d, i) => {
       const fatto = g.pianiFatti.has(PIANOFORTI[i].stanza);
       d.classList.toggle("fatto", fatto);
+      // colore secondo i frammenti indovinati: verde 2 su 2, giallo 1 su 2, rosso nessuno
+      const giusti = PIANOFORTI[i].frammenti.filter((n) => g.risposte[n] === true).length;
+      ["tutti", "meta", "nessuno"].forEach((c) => d.classList.remove(c));
+      if (fatto) d.classList.add(giusti === PIANOFORTI[i].frammenti.length ? "tutti" : giusti ? "meta" : "nessuno");
       d.textContent = fatto ? "🎹" : "♪";
     });
     $("n-punti").textContent = punti();
@@ -2157,5 +2161,6 @@
     g.velo = 0;
     window.statoGioco = g; // per le prove automatiche
     window.provaSpavento = spavento;
+    window.aggiornaPannello = aggiornaPannello;
   }
 })();

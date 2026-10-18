@@ -43,7 +43,8 @@ premuto il dito (o il mouse) nel punto dove si vuole andare; il ragazzo (e la to
 Al pianoforte si risponde dopo aver ascoltato almeno tre quarti del frammento, toccando il ritratto
 (o con i tasti 1 e 2): i nomi dei compositori compaiono solo dopo la risposta, quindi bisogna
 riconoscerli dal volto. Invio per andare avanti.
-A destra ci sono la mappa del piano (si scopre man mano), i pianoforti suonati, i brani
+A destra ci sono la mappa del piano (si scopre man mano), i pianoforti suonati (verdi se
+entrambi i brani sono stati riconosciuti, gialli se uno solo, rossi se nessuno), i brani
 riconosciuti e lo zaino. In alto a destra 🎵 spegne i rumori di fondo, 🔊 gli effetti sonori
 e ⛶ mette il gioco a schermo intero.
 
