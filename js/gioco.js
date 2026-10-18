@@ -114,8 +114,7 @@
   //  Suoni
   // ---------------------------------------------------------------
   const NOMI_SUONI = ["passi", "caduta", "porta", "chiuso", "fantasma", "risata", "bambino", "magia", "raccogli", "giusto",
-    "sbagliato", "ingranaggi", "armatura", "schiocco", "pietra", "ringhio", "calcio", "vetri",
-    "cigolio1", "cigolio2", "cigolio3", "cigolio4"];
+    "sbagliato", "ingranaggi", "armatura", "schiocco", "pietra", "ringhio", "calcio", "vetri"];
   const leggi = (c) => { try { return localStorage.getItem(c) === "1"; } catch (e) { return false; } };
   const scrivi = (c, v) => { try { localStorage.setItem(c, v ? "1" : "0"); } catch (e) { /* niente */ } };
   let mutoEffetti = leggi("sh-muto-effetti");
@@ -216,22 +215,12 @@
     if (a) { a.pause(); a.currentTime = 0; }
   }
 
-  // Passi del ragazzo: sul legno suonano un po' più cupi e ogni tanto le assi cigolano
+  // Passi del ragazzo: sul legno suonano un po' più cupi
   const PAVIMENTO_LEGNO = new Set([1, 3, 6, 8, 11, 13, 14, 15, 17, 18, 19, 20]);
-  let prossimoCigolio = 0;
-  let ultimoCigolio = 0;
   function passo() {
     const legno = PAVIMENTO_LEGNO.has(Number(g.stanza));
     const varia = 0.94 + Math.random() * 0.12;
     suona("passi", legno ? 0.3 : 0.25, legno ? varia * 0.88 : varia);
-    if (!legno) return;
-    const ora = performance.now();
-    if (ora < prossimoCigolio || Math.random() > 0.3) return;
-    let n;
-    do n = 1 + Math.floor(Math.random() * 4); while (n === ultimoCigolio);
-    ultimoCigolio = n;
-    prossimoCigolio = ora + 1500 + Math.random() * 2000;
-    suona("cigolio" + n, 0.16 + Math.random() * 0.08, 0.9 + Math.random() * 0.2);
   }
 
   // Rumori di fondo della casa: vento e un bordone grave, generati dal browser
