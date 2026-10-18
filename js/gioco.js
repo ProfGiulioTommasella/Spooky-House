@@ -372,6 +372,7 @@
       inMoto: false,
       fasePasso: 0,
       timerPassi: 0,
+      fermo: 0,
       fantasma: null,
       guardiani: [],
       gargoyle: [],
@@ -477,10 +478,15 @@
     const r = $("dialogo-ritratti");
     r.innerHTML = "";
     for (const c of ritratti) {
+      // ritratto e nome, così si ripassano i volti dei compositori
+      const f = document.createElement("figure");
       const i = document.createElement("img");
       i.src = `assets/img/${c}-serio.png?v=2`;
       i.alt = COMPOSITORI[c].nomeCompleto;
-      r.appendChild(i);
+      const n = document.createElement("figcaption");
+      n.textContent = COMPOSITORI[c].nome;
+      f.append(i, n);
+      r.appendChild(f);
     }
     $("dialogo").classList.remove("nascosto");
     prossimaRiga();
@@ -676,13 +682,15 @@
   function eventiIngresso(id, nuova) {
     if (id === 1 && !g.eventi.has("benvenuto")) {
       g.eventi.add("benvenuto");
-      setTimeout(() => { suona("porta"); g.scossa = 0.35; pensiero("portaChiusaDietro"); }, 500);
+      // il ragazzo resta fermo finché i compositori non si presentano, così il dialogo arriva subito e qui
+      g.fermo = 1.6;
+      setTimeout(() => { suona("porta"); g.scossa = 0.35; pensiero("portaChiusaDietro"); }, 250);
       setTimeout(() => {
-        if (stato !== "gioco") return;
+        if (stato !== "gioco" || g.stanza !== 1) return;
         nascondiPensiero();
         suona("risata", 0.8);
         dialogo(BENVENUTO, ["bach", "vivaldi", "mozart", "beethoven"]);
-      }, 3600);
+      }, 1500);
     }
     if (id === 7) {
       if (!ha("torcia")) { suona("bambino", 0.7); setTimeout(() => pensiero("buioSenzaTorcia"), 600); }
@@ -733,6 +741,7 @@
       const d = Math.hypot(dx, dy);
       if (d > 10) { vx = dx / d; vy = dy / d; }
     }
+    if (g.fermo > 0) { g.fermo -= dt; vx = 0; vy = 0; }
     const l = Math.hypot(vx, vy);
     g.inMoto = false;
     const fermo = !l || g.caduta > 0 || g.transizione;
