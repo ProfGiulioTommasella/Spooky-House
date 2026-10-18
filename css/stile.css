@@ -223,6 +223,17 @@ button {
 }
 #scelta-lingua button:lang(zh) { font-family: var(--libro), "Noto Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
 #scelta-lingua button.scelta { background: var(--spettro); color: #10231b; border-color: #000; }
+#scelta-personaggio { display: flex; justify-content: center; gap: 12px; }
+#scelta-personaggio button {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 112px; padding: 4px 8px 8px;
+  font-family: var(--libro); font-size: 18px; font-weight: 700; color: #f3ead6;
+  background: rgba(20, 16, 30, 0.75); border: 2px solid rgba(159, 232, 200, 0.45); border-radius: 16px;
+  transition: transform 0.15s;
+}
+#scelta-personaggio img { width: 74px; height: 74px; transform: rotate(-90deg) scale(1.45); filter: drop-shadow(0 3px 4px #000); }
+#scelta-personaggio button:hover { transform: scale(1.05); }
+#scelta-personaggio button.scelta { background: var(--spettro); color: #10231b; border-color: #000; }
 #titolo .nota { font-size: 16px; color: #cfc6e6; margin: 0; line-height: 1.3; }
 
 /* ---------- Didascalie ---------- */

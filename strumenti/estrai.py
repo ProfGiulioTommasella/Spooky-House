@@ -319,9 +319,11 @@ def main():
 
     # Il ragazzo: i costumi nuovi (564x564, testa al centro) sono in strumenti/ragazzo; nel gioco
     # si salvano a 298 px e si disegnano a 149, grandi come i vecchi costumi dello Scratch.
-    for file in ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2",
-                 "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2"]:
-        im = Image.open(os.path.join(RADICE, "strumenti", "ragazzo", file + ".png")).convert("RGBA")
+    # La ragazza (strumenti/ragazza) ha costumi con la stessa misura e lo stesso allineamento.
+    costumi = ["fermo", "passo1", "passo2", "torcia-fermo", "torcia-passo1", "torcia-passo2"]
+    for file in [f"{chi}-{c}" for chi in ["ragazzo", "ragazza"] for c in costumi]:
+        chi = file.split("-")[0]
+        im = Image.open(os.path.join(RADICE, "strumenti", chi, file + ".png")).convert("RGBA")
         salva_png(im.resize((298, 298), Image.LANCZOS), file + ".png")
         dati["oggetti"][file] = {"w": 149, "h": 149, "cx": 74.5, "cy": 74.5}
     for nome, file in [("ghost L", "fantasma-sx"), ("ghost R", "fantasma-dx"), ("book L", "fantasma-libro-sx"), ("book R", "fantasma-libro-dx")]:

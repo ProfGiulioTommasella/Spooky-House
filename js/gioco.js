@@ -64,6 +64,7 @@
   img.stanza21 = img.stanza0;
   for (const n of ["copertina", "casa", "casa-fantasmi"]) pronte.push(carica(n, `assets/img/${n}.jpg?v=${n === "copertina" ? 3 : 2}`));
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
+    "ragazza-fermo", "ragazza-passo1", "ragazza-passo2", "ragazza-torcia-fermo", "ragazza-torcia-passo1", "ragazza-torcia-passo2",
     "fantasma-sx", "fantasma-dx", "fantasma-libro-sx", "fantasma-libro-dx", "gargoyle-1", "gargoyle-2", "amici", "torcia",
     "chiave-piccola", "chiave-torre", "pallone", "armatura", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=5`));
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png?v=2`));
@@ -346,13 +347,26 @@
     sp.textContent = t;
     el.appendChild(sp);
   }
+  // Si gioca con il ragazzo o con la ragazza (scelta sulla schermata del titolo)
+  let personaggio = "ragazzo";
+  try { if (localStorage.getItem("sh-personaggio") === "ragazza") personaggio = "ragazza"; } catch (e) { /* niente */ }
+  // le poche frasi che parlano al protagonista, volte al femminile (le traduzioni restano quelle)
+  const AL_FEMMINILE = [["Ma attento", "Ma attenta"], ["Dai fifone", "Dai fifona"], ["il nostro eroe", "la nostra eroina"], ["SALVO PER", "SALVA PER"]];
+  const genere = (t) => (personaggio === "ragazza" ? AL_FEMMINILE.reduce((s, [m, f]) => s.replace(m, f), t) : t);
+  function impostaPersonaggio(p) {
+    personaggio = p === "ragazza" ? "ragazza" : "ragazzo";
+    try { localStorage.setItem("sh-personaggio", personaggio); } catch (e) { /* niente */ }
+    document.querySelectorAll("#scelta-personaggio button").forEach((b) => b.classList.toggle("scelta", b.dataset.personaggio === personaggio));
+  }
+  document.querySelectorAll("#scelta-personaggio button").forEach((b) => b.addEventListener("click", () => impostaPersonaggio(b.dataset.personaggio)));
+  impostaPersonaggio(personaggio);
   // scrive in un elemento il testo italiano e, sotto, la traduzione
   function scriviTesto(el, it, val = {}) {
-    el.textContent = riempi(it, val);
+    el.textContent = genere(riempi(it, val));
     aggiungiTraduzione(el, it, val);
   }
   function scriviPulsante(el, prima, it) {
-    el.textContent = prima + it;
+    el.textContent = prima + genere(it);
     aggiungiTraduzione(el, it);
   }
   function impostaLingua(l) {
@@ -1468,11 +1482,12 @@
   function disegnaRagazzo(t) {
     // la torcia in mano solo nelle stanze buie
     const torcia = ha("torcia") && !!STANZE[g.stanza].buio;
-    let nome = torcia ? "ragazzo-torcia-fermo" : "ragazzo-fermo";
+    let costume = torcia ? "torcia-fermo" : "fermo";
     if (g.inMoto) {
       const passo = Math.floor(g.fasePasso / 0.2) % 2;
-      nome = torcia ? (passo ? "ragazzo-torcia-passo2" : "ragazzo-torcia-passo1") : passo ? "ragazzo-passo2" : "ragazzo-passo1";
+      costume = (torcia ? "torcia-" : "") + (passo ? "passo2" : "passo1");
     }
+    const nome = `${personaggio}-${costume}`;
     let scala = SCALA_RAGAZZO;
     let ang = g.ang;
     let alfa = 1;

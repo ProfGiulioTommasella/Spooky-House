@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700;800&family=Creepster&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/stile.css?v=6">
+  <link rel="stylesheet" href="css/stile.css?v=7">
 </head>
 <body>
   <div id="schermo">
@@ -51,6 +51,10 @@
       <button id="btn-start" aria-label="Inizia"><img src="assets/img/start.png?v=2" alt=""></button>
       <div class="sotto-titolo">
         <p class="trama"><span id="trama-1">Un gioco per riconoscere la musica di Bach, Vivaldi, Mozart e Beethoven.</span></p>
+        <div id="scelta-personaggio" role="group" aria-label="Personaggio">
+          <button data-personaggio="ragazzo"><img src="assets/img/ragazzo-fermo.png?v=5" alt="">Ragazzo</button>
+          <button data-personaggio="ragazza"><img src="assets/img/ragazza-fermo.png?v=5" alt="">Ragazza</button>
+        </div>
         <button id="btn-inizia" class="grande">▶ INIZIA</button>
         <div id="scelta-lingua" role="group" aria-label="Lingua">
           <span class="etichetta">🌍 Lingua</span>
@@ -131,8 +135,8 @@
 
   <script src="js/contenuti.js?v=7"></script>
   <script src="js/stanze.js?v=5"></script>
-  <script src="js/maschere.js?v=6"></script>
+  <script src="js/maschere.js?v=7"></script>
   <script src="js/traduzioni.js?v=4"></script>
-  <script src="js/gioco.js?v=27"></script>
+  <script src="js/gioco.js?v=28"></script>
 </body>
 </html>

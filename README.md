@@ -58,7 +58,8 @@ invece di usare quella vecchia in memoria.
 
 ## Versione bilingue
 
-Nella schermata del titolo si sceglie la lingua: solo italiano, oppure italiano con
+Nella schermata del titolo si sceglie se giocare con il ragazzo o con la ragazza (la scelta
+resta per le partite successive) e la lingua: solo italiano, oppure italiano con
 albanese (Shqip), spagnolo (Español) o cinese semplificato (中文). Ogni testo resta in
 italiano e la traduzione compare subito sotto. Le traduzioni sono in `js/traduzioni.js`
 (una bozza da far rivedere): la chiave è il testo italiano esatto, quindi se si cambia un
@@ -113,7 +114,8 @@ strumenti/estrai.py   rigenera assets e js/maschere.js dal file .sb3 (Pillow, nu
                       escono a 1920x1440, e ritratti, pianoforte e sprite in alta risoluzione
                       (livelli sfondo, vuoto e ostacoli) e si genera anche l'armadio dello studio
 strumenti/cigolii.py  ritaglia i cigolii del pavimento di legno dal suono della porta (ffmpeg)
-strumenti/ragazzo/     i costumi del ragazzo (564x564, testa al centro), da cui estrai.py ricava quelli del gioco
+strumenti/ragazzo/     i costumi del ragazzo e (in strumenti/ragazza/) della ragazza, 564x564 con la testa
+                      al centro, da cui estrai.py ricava quelli del gioco
 ```
 
 ## Crediti
