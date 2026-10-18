@@ -110,5 +110,12 @@ strumenti/estrai.py   rigenera assets e js/maschere.js dal file .sb3 (Pillow, nu
                       con le cartelle dei file Canva come argomenti successivi, stanze e copertine
                       escono a 1920x1440, e ritratti, pianoforte e sprite in alta risoluzione
                       (livelli sfondo, vuoto e ostacoli) e si genera anche l'armadio dello studio
+strumenti/cigolii.py  ritaglia i cigolii del pavimento di legno dal suono della porta (ffmpeg)
 strumenti/ragazzo/     i costumi del ragazzo (564x564, testa al centro), da cui estrai.py ricava quelli del gioco
 ```
+
+## Crediti
+
+I cigolii del pavimento (assets/audio/cigolio1..6.mp3) sono ritagliati da
+["Creaking, squeaking small wooden door open close sound effect"](https://freesound.org/s/553377/)
+di Garuda1982 su Freesound, con licenza [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
