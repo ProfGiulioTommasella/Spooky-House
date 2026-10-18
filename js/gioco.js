@@ -713,8 +713,7 @@
     if (piano && cerchioRettangolo(x, y, RAGGIO, piano)) return false;
     if (g.stanza === 8 && cerchioRettangolo(x, y, RAGGIO, armadioBox())) return false;
     if (g.stanza === 0 || g.stanza === 21) {
-      const [ax, ay] = MASCHERE.posizioni.amici;
-      if (dist(x, y, ax, ay + 20) < 30 + RAGGIO) return false;
+      if (cerchioRettangolo(x, y, RAGGIO, amiciBox())) return false;
       for (const gr of g.gargoyle) if (dist(x, y, gr.x, gr.y) < 30 + RAGGIO) return false;
     }
     return true;
@@ -946,21 +945,27 @@
     }
   }
 
+  // gli amici occupano tutta la figura (la posizione è il centro dell'immagine)
+  function amiciBox() {
+    const [ax, ay] = MASCHERE.posizioni.amici;
+    return [ax - 32, ay - 70, ax + 32, ay + 72];
+  }
   function aggiornaFuori(dt) {
+    // ogni gargoyle si sveglia solo quando gli si passa accanto, ringhia, e si riaddormenta quando ci si allontana
     for (const gr of g.gargoyle) {
       const d = dist(g.x, g.y, gr.x, gr.y);
-      let obiettivo = gr.base;
-      if (d < 300) obiettivo = (Math.atan2(g.y - gr.y, g.x - gr.x) * 180) / Math.PI + 90;
-      let diff = ((obiettivo - gr.ang + 540) % 360) - 180;
-      gr.ang += diff * Math.min(1, dt * 4);
-      if (d < 150 && !gr.sveglio) {
+      if (!gr.sveglio && d < 120) {
         gr.sveglio = true;
         suona("pietra", 0.7);
-        setTimeout(() => suona("ringhio", 0.6), 500);
+        setTimeout(() => suona("ringhio", 0.6), 350);
+      } else if (gr.sveglio && d > 170) {
+        gr.sveglio = false;
       }
+      const obiettivo = gr.sveglio ? (Math.atan2(g.y - gr.y, g.x - gr.x) * 180) / Math.PI + 90 : gr.base;
+      const diff = ((obiettivo - gr.ang + 540) % 360) - 180;
+      gr.ang += diff * Math.min(1, dt * (gr.sveglio ? 5 : 2));
     }
-    const [ax, ay] = MASCHERE.posizioni.amici;
-    const vicino = dist(g.x, g.y, ax, ay + 20) < 72;
+    const vicino = cerchioRettangolo(g.x, g.y, RAGGIO, amiciBox(), 14);
     g.amiciPausa -= dt;
     if (g.stanza === 0 && vicino && g.amiciPausa <= 0) {
       g.amiciPausa = 4.5;
