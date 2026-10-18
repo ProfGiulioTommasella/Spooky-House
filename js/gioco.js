@@ -1476,8 +1476,8 @@
       for (const p of STANZE[17].guardiani) {
         const [x, y] = P(p);
         ombra(x, y + 26, 28, 9);
-        // ferme si guardano: spalle al muro, quelle in alto verso il basso e viceversa
-        disegnaImg("armatura", x, y, 0.7, (y < RH / 2 ? 0 : Math.PI), 0.85);
+        // ferme: ruotate di 90° in senso orario rispetto alla posizione di partenza
+        disegnaImg("armatura", x, y, 0.7, (y < RH / 2 ? 0 : Math.PI) + Math.PI / 2, 0.85);
       }
     }
     for (const a of g.guardiani) {
