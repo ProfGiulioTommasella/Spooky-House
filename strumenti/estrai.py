@@ -182,11 +182,12 @@ SPRITE_HD = {
     "gargoyle-1": "Gargoyle su", "gargoyle-2": "Gargoyle giù", "armatura": "armatura", "amici": "EXIT amici",
     "chiave-torre": "Chiave torre x semint", "chiave-piccola": "Chiave bagno PT x ...1", "pergamena": "pergamena",
     "pallone": "Icona pallone Start", "start": "Pulsante Start 1", "fantasma-sx": "ghost 1",
+    "fantasma-libro-dx": "ghost book",
 }
 LATO_HD = 2  # le stanze in alta risoluzione sono 960x720 moltiplicato per questo
 ALTEZZA_RITRATTO = 720  # i ritratti si vedono alti 360 pixel
 LARGHEZZA_PIANOFORTE = 1300  # il pianoforte dell'ascolto si vede largo 600 pixel
-SPECCHIO = {"fantasma-sx": "fantasma-dx"}  # sprite che si salvano anche girati
+SPECCHIO = {"fantasma-sx": "fantasma-dx", "fantasma-libro-dx": "fantasma-libro-sx"}  # sprite che si salvano anche girati
 
 
 def alta_risoluzione(file, basso):
