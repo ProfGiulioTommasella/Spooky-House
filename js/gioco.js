@@ -73,7 +73,7 @@
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
     "ragazza-fermo", "ragazza-passo1", "ragazza-passo2", "ragazza-torcia-fermo", "ragazza-torcia-passo1", "ragazza-torcia-passo2",
     "fantasma-sx", "fantasma-dx", "fantasma-libro-sx", "fantasma-libro-dx", "gargoyle-1", "gargoyle-2", "amici", "torcia",
-    "chiave-piccola", "chiave-torre", "pallone", "armatura", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=5`));
+    "chiave-piccola", "chiave-torre", "pallone", "armatura-fermo", "armatura-passo1", "armatura-passo2", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=5`));
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png?v=2`));
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
   for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png?v=2`;
@@ -926,7 +926,7 @@
     if (o === "chiave-torre") {
       pensiero("guardiani");
       setTimeout(() => { suona("ingranaggi"); setTimeout(() => suona("risata", 0.8), 400); }, 300);
-      g.guardiani = STANZE[17].guardiani.map((p) => { const [x, y] = P(p); return { x, y, ritardo: 1.1, fase: Math.random() * 6 }; });
+      g.guardiani = STANZE[17].guardiani.map((p) => { const [x, y] = P(p); return { x, y, ritardo: 1.1, fase: Math.random() * 6, ang: y < RH / 2 ? 0 : Math.PI }; });
     }
     aggiornaPannello();
   }
@@ -1476,14 +1476,17 @@
       for (const p of STANZE[17].guardiani) {
         const [x, y] = P(p);
         ombra(x, y + 26, 28, 9);
-        // ferme: ruotate di 90° in senso orario rispetto alla posizione di partenza
-        disegnaImg("armatura", x, y, 0.7, (y < RH / 2 ? 0 : Math.PI) + Math.PI / 2, 0.85);
+        // ferme: quelle in alto guardano a destra, quelle in basso a sinistra
+        disegnaImg("armatura-fermo", x, y, 0.7, y < RH / 2 ? 0 : Math.PI, 0.85);
       }
     }
     for (const a of g.guardiani) {
       ombra(a.x, a.y + 26, 28, 9);
-      const passo = a.ritardo > 0 ? Math.sin(a.fase * 3) * 0.08 : Math.sin(a.fase) * 0.12;
-      disegnaImg("armatura", a.x, a.y, 0.7, (a.ang || 0) + Math.PI / 2 + passo);
+      // si risvegliano tremando, poi marciano alternando i due passi
+      const sveglia = a.ritardo > 0;
+      const costume = sveglia ? "armatura-fermo" : Math.sin(a.fase) > 0 ? "armatura-passo1" : "armatura-passo2";
+      const scuoti = sveglia ? Math.sin(a.fase * 3) * 0.08 : Math.sin(a.fase) * 0.04;
+      disegnaImg(costume, a.x, a.y, 0.7, a.ang + scuoti);
     }
 
     // il ragazzo
