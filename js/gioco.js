@@ -534,7 +534,7 @@
     d.dataset.oggetto = o;
     d.title = TITOLI_ZAINO[o];
     const i = document.createElement("img");
-    i.src = `assets/img/${o}.png?v=3`;
+    i.src = `assets/img/${o}.png?v=5`;
     i.alt = TITOLI_ZAINO[o];
     d.appendChild(i);
     zainoEl.appendChild(d);

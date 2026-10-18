@@ -329,7 +329,11 @@ def main():
     sprite_png("Gargoyle su", "Gargoyle su", "gargoyle-1.png")
     sprite_png("Gargoyle su2", "Gargoyle giù", "gargoyle-2.png")
     sprite_png("EXIT amici", "EXIT amici", "amici.png")
-    sprite_png("Torcia", "torcia 2-Photoroom", "torcia.png")
+    # la torcia da raccogliere: il disegno nuovo (strumenti/torcia.png), largo 84 pixel nella stanza
+    torcia = Image.open(os.path.join(RADICE, "strumenti", "torcia.png")).convert("RGBA")
+    alta = round(84 * torcia.height / torcia.width)
+    salva_png(torcia.resize((84 * 4, alta * 4), Image.LANCZOS), "torcia.png")
+    dati["oggetti"]["torcia"] = {"w": 84, "h": alta, "cx": 42.0, "cy": alta / 2}
     sprite_png("Chiave bagno", "Chiave bagno PT x ", "chiave-piccola.png")
     sprite_png("Pulsante Start 1", "Icona pallone Start", "pallone.png")
     sprite_png("Pulsante Start 1", "Pulsante Start 1", "start.png")
