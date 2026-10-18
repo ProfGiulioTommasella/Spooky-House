@@ -342,7 +342,9 @@ button {
   z-index: 40;
   background:
     radial-gradient(ellipse at 50% 55%, rgba(255, 190, 90, 0.22), transparent 45%),
-    rgba(4, 3, 8, 0.93);
+    linear-gradient(rgba(4, 3, 8, 0.5), rgba(4, 3, 8, 0.62)),
+    var(--sfondo, none) center / cover no-repeat,
+    #050308;
   animation: compari 0.4s ease-out;
 }
 #piano-testa { position: absolute; left: 0; right: 0; top: 18px; text-align: center; }
@@ -360,7 +362,7 @@ button {
   justify-content: space-between;
 }
 .ritratto {
-  width: 300px;
+  width: 330px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -369,7 +371,7 @@ button {
   padding: 8px;
   transition: transform 0.2s, filter 0.3s;
 }
-.ritratto img { height: 360px; filter: drop-shadow(0 10px 18px #000); }
+.ritratto img { height: 330px; max-width: 330px; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 10px 18px #000); }
 .ritratto .nome {
   font-family: var(--titolo);
   font-size: 40px;

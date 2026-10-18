@@ -1,10 +1,11 @@
 """Estrae dal progetto Scratch (Spooky House.sb3) immagini, suoni e maschere delle stanze.
 
-Uso:  python3 strumenti/estrai.py "percorso/Spooky House.sb3" ["cartella con gli sfondi da Canva"]
+Uso:  python3 strumenti/estrai.py "percorso/Spooky House.sb3" ["cartella Canva" ...]
 
-La cartella facoltativa contiene gli sfondi e i pianoforti esportati da Canva in
-alta risoluzione (3840x2880, stessi nomi dello zip "Spooky House - STANZE"):
-se c'è, le stanze vengono salvate a 1920x1440 invece che a 960x720.
+Le cartelle facoltative contengono i file esportati da Canva in alta risoluzione
+(3840x2880, con lo sfondo trasparente, stessi nomi degli zip "Spooky House - STANZE"
+e "Spooky House"): stanze, copertine, ritratti, pianoforte e alcuni sprite.
+Con questi file le stanze e le copertine vengono salvate a 1920x1440 invece che a 960x720.
 
 Serve Python 3 con Pillow e numpy, e ffmpeg per convertire i suoni in mp3.
 Rigenera assets/img, assets/audio e js/maschere.js.
@@ -21,7 +22,16 @@ AUDIO = os.path.join(RADICE, "assets", "audio")
 CELLA = 4  # lato in pixel di una cella delle maschere di collisione (stanza 960x720)
 
 sb3 = zipfile.ZipFile(sys.argv[1] if len(sys.argv) > 1 else os.path.join(RADICE, "..", "Spooky House.sb3"))
-CARTELLA_HD = sys.argv[2] if len(sys.argv) > 2 else None
+CARTELLE_HD = sys.argv[2:]  # cartelle con i file Canva in alta risoluzione (facoltative)
+
+
+def file_hd(nome):
+    """Il percorso del file Canva con questo nome, cercato in tutte le cartelle date."""
+    for cartella in CARTELLE_HD:
+        percorso = os.path.join(cartella, nome + ".png")
+        if os.path.exists(percorso):
+            return percorso
+    return None
 progetto = json.loads(sb3.read("project.json"))
 SPRITE = {t["name"]: t for t in progetto["targets"]}
 
@@ -110,17 +120,19 @@ FILE_HD = {
 SPRITE_HD = {
     "gargoyle-1": "Gargoyle su", "gargoyle-2": "Gargoyle giù", "armatura": "armatura", "amici": "EXIT amici",
     "chiave-torre": "Chiave torre x semint", "chiave-piccola": "Chiave bagno PT x ...1", "pergamena": "pergamena",
+    "pallone": "Icona pallone Start", "start": "Pulsante Start 1", "fantasma-sx": "ghost 1",
 }
 LATO_HD = 2  # le stanze in alta risoluzione sono 960x720 moltiplicato per questo
+ALTEZZA_RITRATTO = 720  # i ritratti si vedono alti 360 pixel
+LARGHEZZA_PIANOFORTE = 1000  # il pianoforte dell'ascolto si vede largo 440 pixel
+SPECCHIO = {"fantasma-sx": "fantasma-dx"}  # sprite che si salvano anche girati
 
 
 def alta_risoluzione(file, basso):
     """L'immagine di Canva (fondo bianco, nessuna trasparenza) ridotta a 1920x1440,
     con la trasparenza presa dal costume Scratch corrispondente (basso, 960x720)."""
-    if not CARTELLA_HD:
-        return None
-    percorso = os.path.join(CARTELLA_HD, file + ".png")
-    if not os.path.exists(percorso):
+    percorso = file_hd(file)
+    if not percorso:
         return None
     dim = (960 * LATO_HD, 720 * LATO_HD)
     originale = Image.open(percorso)
@@ -198,9 +210,19 @@ def main():
             s["piano"] = list(box)
         dati["stanze"][n] = s
 
-    # Copertine
+    # Copertine e sfondi del pianoforte (in Canva hanno lo stesso nome, senza spazi in fondo)
     for nome, file in [("Copertina 1 ", "copertina"), ("Copertina 2", "casa"), ("Copertina 3", "casa-fantasmi"), ("Copertina END", "fine")]:
-        salva_jpg(sulla_scena("Sfondo", nome), f"{file}.jpg")
+        hd = file_hd(nome.strip())
+        salva_jpg(Image.open(hd).convert("RGBA").resize((960 * LATO_HD, 720 * LATO_HD), Image.LANCZOS) if hd else sulla_scena("Sfondo", nome), f"{file}.jpg")
+    for colore in ["blu", "carta", "legno"]:
+        nome = "sfondo " + colore
+        hd = file_hd(nome)
+        if hd:
+            im = Image.open(hd).convert("RGBA").resize((960 * LATO_HD, 720 * LATO_HD), Image.LANCZOS)
+        else:
+            c = costume("Stage", nome)
+            im = Image.open(io.BytesIO(sb3.read(c["md5ext"]))).convert("RGBA").resize((960, 720), Image.LANCZOS)
+        salva_jpg(im, f"sfondo-{colore}.jpg")
 
     # Sprite ritagliati: si salva l'immagine e dove sta il punto di rotazione
     def sprite_png(sprite, nome, file, x=0, y=0):
@@ -224,18 +246,18 @@ def main():
     sprite_png("Chiave torre", "Chiave torre x semint", "chiave-torre.png")
     sprite_png("Guardiani", "armatura", "armatura.png")
     for c in ["Bach", "Vivaldi", "Mozart", "Beethoven"]:
+        if ritratti_alta_risoluzione(c):
+            continue
         for i, umore in enumerate(["mistero", "serio", "felice", "arrabbiato"]):
             nome = SPRITE[c]["costumes"][i]["name"]
             im, _, _ = immagine(c, nome)
             pezzo, _ = ritaglia(im)
             salva_png(pezzo, f"{c.lower()}-{umore}.png")
-    for i, nome in enumerate(["Piano 1 fermo", "Piano 2 luce", "Piano 3 luce", "Piano 4 luce"]):
-        im = sulla_scena("Piano", nome)
-        pezzo, box = ritaglia(im)
-        hd = alta_risoluzione(nome, im)
-        if hd:
-            pezzo = hd.crop(tuple(v * LATO_HD for v in box))
-        salva_png(pezzo, f"pianoforte-{i}.png")
+    if not pianoforti_alta_risoluzione():
+        fotogrammi = [sulla_scena("Piano", n) for n in ["Piano 1 fermo", "Piano 2 luce", "Piano 3 luce", "Piano 4 luce"]]
+        box = unione([im.getbbox() for im in fotogrammi])
+        for i, im in enumerate(fotogrammi):
+            salva_png(im.crop(box), f"pianoforte-{i}.png")
     im = sulla_scena("Consigli", "pergamena vuota")
     salva_png(ritaglia(im)[0], "pergamena.png")
 
@@ -285,8 +307,8 @@ def main():
     for s in SPRITE["Piano"]["sounds"]:
         n = int(s["name"].split()[0])
         mp3(s["md5ext"], f"frammenti/{n:02d}.mp3", mono=False, kbps=128, filtro="loudnorm=I=-18:TP=-1.5")
-    sprite_alta_risoluzione()
-    if CARTELLA_HD:
+    sprite_alta_risoluzione(dati)
+    if CARTELLE_HD:
         armadio_segreto(dati)
         with open(os.path.join(RADICE, "js", "maschere.js"), "w") as f:
             f.write("// Generato da strumenti/estrai.py: maschere di collisione, porte e posizioni ricavate dal progetto Scratch.\n")
@@ -295,25 +317,74 @@ def main():
     print("Fatto.")
 
 
-def sprite_alta_risoluzione():
-    if not CARTELLA_HD:
-        return
+def sprite_alta_risoluzione(dati):
     for file, nome in SPRITE_HD.items():
-        percorso = os.path.join(CARTELLA_HD, nome + ".png")
-        if not os.path.exists(percorso):
+        percorso = file_hd(nome)
+        if not percorso:
             continue
         hd = Image.open(percorso).convert("RGBA")
         if hd.getextrema()[3][0] == 255:
             continue  # senza trasparenza non si può usare
-        attuale = Image.open(os.path.join(IMG, file + ".png"))
-        pezzo = hd.crop(hd.getbbox()).resize((attuale.width * LATO_HD, attuale.height * LATO_HD), Image.LANCZOS)
+        if file in dati["oggetti"]:
+            dim = (dati["oggetti"][file]["w"] * LATO_HD, dati["oggetti"][file]["h"] * LATO_HD)
+        else:
+            attuale = Image.open(os.path.join(IMG, file + ".png"))
+            dim = (attuale.width * LATO_HD, attuale.height * LATO_HD)
+        pezzo = hd.crop(hd.getbbox()).resize(dim, Image.LANCZOS)
         salva_png(pezzo, file + ".png")
+        if file in SPECCHIO:
+            salva_png(pezzo.transpose(Image.FLIP_LEFT_RIGHT), SPECCHIO[file] + ".png")
+
+
+def ritratti_alta_risoluzione(compositore):
+    """I quattro ritratti ("Bach 1" ... "Bach 4"), ognuno ritagliato sulla sua cornice
+    (il gioco li centra nello stesso spazio)."""
+    file = [file_hd(f"{compositore} {i}") for i in range(1, 5)]
+    if not all(file):
+        return False
+    immagini = [Image.open(f).convert("RGBA") for f in file]
+    # si ritaglia la sola cornice, senza l'ombra sfumata (l'ombra la aggiunge il gioco)
+    for im, umore in zip(immagini, ["mistero", "serio", "felice", "arrabbiato"]):
+        pezzo = im.crop(cornice(im))
+        pezzo = pezzo.resize((round(pezzo.width * ALTEZZA_RITRATTO / pezzo.height), ALTEZZA_RITRATTO), Image.LANCZOS)
+        salva_png(pezzo, f"{compositore.lower()}-{umore}.png")
+    return True
+
+
+def cornice(im):
+    """Il riquadro della cornice dorata: pixel opachi e chiari (l'ombra intorno è scura)."""
+    a = np.array(im)
+    chiaro = (a[:, :, 3] > 200) & (a[:, :, :3].max(axis=2) > 90)
+    # righe e colonne con una buona parte di cornice, per non contare puntini sparsi
+    righe = np.nonzero(chiaro.sum(axis=1) > chiaro.shape[1] * 0.02)[0]
+    colonne = np.nonzero(chiaro.sum(axis=0) > chiaro.shape[0] * 0.02)[0]
+    return (int(colonne.min()), int(righe.min()), int(colonne.max() + 1), int(righe.max() + 1))
+
+
+def unione(riquadri):
+    return (min(b[0] for b in riquadri), min(b[1] for b in riquadri), max(b[2] for b in riquadri), max(b[3] for b in riquadri))
+
+
+def pianoforti_alta_risoluzione():
+    """Il pianoforte grande dell'ascolto: i quattro fotogrammi con lo stesso riquadro, così
+    alternandoli il pianoforte resta fermo e cambiano solo le candele."""
+    file = [file_hd(n) for n in ["Piano 1 fermo", "Piano 2 luce", "Piano 3 luce", "Piano 4 luce"]]
+    if not all(file):
+        return False
+    immagini = [Image.open(f).convert("RGBA") for f in file]
+    if any(im.getextrema()[3][0] == 255 for im in immagini):
+        return False
+    box = unione([im.getbbox() for im in immagini])
+    for i, im in enumerate(immagini):
+        pezzo = im.crop(box)
+        salva_png(pezzo.resize((LARGHEZZA_PIANOFORTE, round(pezzo.height * LARGHEZZA_PIANOFORTE / pezzo.width)), Image.LANCZOS), f"pianoforte-{i}.png")
+    return True
 
 
 def armadio_segreto(dati):
     """L'armadio dello studio che nasconde il passaggio per la stanza segreta."""
-    percorso = os.path.join(CARTELLA_HD, "PT_ studio secret door.png")
-    if not os.path.exists(percorso):
+    percorso = file_hd("PT_ studio secret door")
+    if not percorso:
         return
     hd = Image.open(percorso).convert("RGBA")
     box = hd.getbbox()

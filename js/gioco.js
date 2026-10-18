@@ -62,16 +62,17 @@
   const pronte = [];
   for (const n of Object.keys(STANZE)) if (n !== "21") pronte.push(carica("stanza" + n, `assets/img/stanze/${n}.jpg?v=3`));
   img.stanza21 = img.stanza0;
-  for (const n of ["copertina", "casa", "casa-fantasmi"]) pronte.push(carica(n, `assets/img/${n}.jpg`));
+  for (const n of ["copertina", "casa", "casa-fantasmi"]) pronte.push(carica(n, `assets/img/${n}.jpg?v=2`));
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
     "fantasma-sx", "fantasma-dx", "fantasma-libro-sx", "fantasma-libro-dx", "gargoyle-1", "gargoyle-2", "amici", "torcia",
-    "chiave-piccola", "chiave-torre", "pallone", "armatura", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=2`));
+    "chiave-piccola", "chiave-torre", "pallone", "armatura", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=3`));
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png`));
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
-  for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png`;
-  for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png?v=2`;
+  for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png?v=2`;
+  for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png?v=3`;
   new Image().src = "assets/img/fine.jpg";
   new Image().src = "assets/img/pergamena.png?v=2";
+  for (const s of ["blu", "carta", "legno"]) new Image().src = `assets/img/sfondo-${s}.jpg`;
 
   // ---------------------------------------------------------------
   //  Maschere di collisione (da js/maschere.js)
@@ -477,7 +478,7 @@
     r.innerHTML = "";
     for (const c of ritratti) {
       const i = document.createElement("img");
-      i.src = `assets/img/${c}-serio.png`;
+      i.src = `assets/img/${c}-serio.png?v=2`;
       i.alt = COMPOSITORI[c].nomeCompleto;
       r.appendChild(i);
     }
@@ -513,7 +514,7 @@
     d.dataset.oggetto = o;
     d.title = TITOLI_ZAINO[o];
     const i = document.createElement("img");
-    i.src = `assets/img/${o}.png?v=2`;
+    i.src = `assets/img/${o}.png?v=3`;
     i.alt = TITOLI_ZAINO[o];
     d.appendChild(i);
     zainoEl.appendChild(d);
@@ -712,6 +713,7 @@
     const piano = MASCHERE.stanze[g.stanza].piano;
     if (piano && cerchioRettangolo(x, y, RAGGIO, piano)) return false;
     if (g.stanza === 8 && cerchioRettangolo(x, y, RAGGIO, armadioBox())) return false;
+    if (corridoioChiuso() && x > LIMITE_BUIO) return false;
     if (g.stanza === 0 || g.stanza === 21) {
       if (cerchioRettangolo(x, y, RAGGIO, amiciBox())) return false;
       for (const gr of g.gargoyle) if (dist(x, y, gr.x, gr.y) < 30 + RAGGIO) return false;
@@ -769,6 +771,17 @@
   // ---------------------------------------------------------------
   //  Porte, oggetti, buchi, fantasmi, armature
   // ---------------------------------------------------------------
+  // Nel corridoio buio senza torcia la seconda metà è nera e non ci si va: si può solo tornare indietro.
+  const LIMITE_BUIO = 400;
+  const corridoioChiuso = () => g.stanza === 7 && !ha("torcia");
+  function controllaBuioTotale(dt) {
+    g.pausaBuio = Math.max(0, (g.pausaBuio || 0) - dt);
+    if (corridoioChiuso() && g.x > LIMITE_BUIO - RAGGIO - 6 && !g.pausaBuio) {
+      g.pausaBuio = 4;
+      suona("bambino", 0.5);
+      pensiero("troppoBuio");
+    }
+  }
   function soddisfa(req) {
     if (req === "piano19") return g.pianiFatti.has(19);
     return ha(req);
@@ -1043,6 +1056,7 @@
     controllaPorte();
     if (g.transizione) return;
     controllaArmadio(dt);
+    controllaBuioTotale(dt);
     controllaOggetti();
     controllaBuchi();
     controllaPianoforte();
@@ -1199,7 +1213,8 @@
       for (const p of STANZE[17].guardiani) {
         const [x, y] = P(p);
         ombra(x, y + 26, 28, 9);
-        disegnaImg("armatura", x, y, 0.7, (y < RH / 2 ? Math.PI : 0), 0.85);
+        // ferme si guardano: spalle al muro, quelle in alto verso il basso e viceversa
+        disegnaImg("armatura", x, y, 0.7, (y < RH / 2 ? 0 : Math.PI), 0.85);
       }
     }
     for (const a of g.guardiani) {
@@ -1316,6 +1331,13 @@
     const o = oggettoVisibile();
     if (o) { const [ox, oy] = posizioneOggetto(o); buca(ox, oy, 90, 0.8); }
     ctx.drawImage(buio, 0, 0, RW, RH);
+    if (corridoioChiuso()) {
+      const gr = ctx.createLinearGradient(LIMITE_BUIO - 140, 0, LIMITE_BUIO, 0);
+      gr.addColorStop(0, "rgba(2,1,6,0)");
+      gr.addColorStop(1, "rgba(2,1,6,1)");
+      ctx.fillStyle = gr;
+      ctx.fillRect(LIMITE_BUIO - 140, 0, RW - LIMITE_BUIO + 140, RH);
+    }
     if (torcia) luce(g.x + Math.cos(g.ang) * 80, g.y + Math.sin(g.ang) * 80, 180, "rgba(255,170,80,A)", 0.12);
   }
 
@@ -1484,16 +1506,52 @@
   // ---------------------------------------------------------------
   //  Il pianoforte
   // ---------------------------------------------------------------
+  // I frammenti passano anch'essi dalla Web Audio API, che il primo tocco ha già sbloccato:
+  // con un <audio> alcuni browser (Safari) li fermavano appena partiti.
+  // L'<audio> resta come riserva, e serve anche per riascoltarli nel finale.
   const brani = {};
+  const buffer_brani = {};
   function preparaBrano(n) {
+    const c = contesto();
+    if (c && !buffer_brani[n] && location.protocol !== "file:" && window.fetch) {
+      buffer_brani[n] = fetch(FRAMMENTI[n].file)
+        .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then((dati) => new Promise((ok, ko) => { const p = c.decodeAudioData(dati, ok, ko); if (p && p.then) p.then(ok, ko); }))
+        .catch(() => null);
+    }
     if (brani[n]) return brani[n];
     const a = new Audio(FRAMMENTI[n].file);
     a.preload = "auto";
     brani[n] = a;
     return a;
   }
+  // stessa interfaccia di un <audio> per quello che serve qui: durata, posizione, fine e sfumatura
+  function suonaBuffer(buf) {
+    const c = contesto();
+    if (c.state !== "running") c.resume();
+    const v = c.createGain();
+    v.connect(c.destination);
+    const sorgente = c.createBufferSource();
+    sorgente.buffer = buf;
+    sorgente.connect(v);
+    const t0 = c.currentTime;
+    let finito = false;
+    sorgente.onended = () => { finito = true; };
+    sorgente.start();
+    return {
+      duration: buf.duration,
+      get currentTime() { return Math.min(buf.duration, c.currentTime - t0); },
+      get ended() { return finito; },
+      sfuma(secondi) {
+        v.gain.setTargetAtTime(0, c.currentTime, secondi / 4);
+        setTimeout(() => { try { sorgente.stop(); } catch (e) { /* già fermo */ } }, secondi * 1000);
+      },
+    };
+  }
   const pf = { corrente: null, parte: 0, audio: null, risposto: false, puoi: false, inizio: 0, anim: null, primo: true };
 
+  // lo sfondo dietro al pianoforte, stanza per stanza (come nello Scratch)
+  const SFONDI_PIANO = { 3: "blu", 6: "carta", 8: "blu", 9: "carta", 11: "carta", 13: "blu", 19: "legno", 20: "legno" };
   function apriPianoforte(id) {
     const def = PIANOFORTI.find((p) => p.stanza === id);
     if (!def) return;
@@ -1506,6 +1564,7 @@
     pf.corrente = def;
     pf.parte = 0;
     scriviTesto($("piano-stanza"), STANZE[id].nome);
+    $("piano").style.setProperty("--sfondo", `url("${new URL(`assets/img/sfondo-${SFONDI_PIANO[id]}.jpg`, location.href).href}")`);
     $("piano").classList.remove("nascosto");
     preparaParte();
   }
@@ -1519,15 +1578,14 @@
       const c = def.scelta[i];
       b.className = "ritratto";
       b.disabled = true;
-      b.querySelector("img").src = `assets/img/${c}-mistero.png`;
+      b.querySelector("img").src = `assets/img/${c}-mistero.png?v=2`;
       b.querySelector("img").alt = COMPOSITORI[c].nomeCompleto;
-      const nome = b.querySelector(".nome");
-      nome.innerHTML = `<span class="tasto">${i + 1}</span>`;
-      nome.appendChild(document.createTextNode(COMPOSITORI[c].nome.toUpperCase()));
+      // il nome si scopre solo dopo la risposta: il compositore va riconosciuto dal ritratto
+      scriviNome(b, i, "? ? ?");
     });
     $("piano-esito").classList.add("nascosto");
     $("piano-strumento").classList.remove("nascosto");
-    $("piano-img").src = "assets/img/pianoforte-0.png?v=2";
+    $("piano-img").src = "assets/img/pianoforte-0.png?v=3";
     $("piano-barra-pieno").style.width = "0";
     if (pf.primo && pf.parte === 0) scriviTesto($("piano-messaggio"), TESTI_PIANO.istruzioni);
     else $("piano-messaggio").textContent = "";
@@ -1537,41 +1595,64 @@
   function ascolta() {
     if (stato !== "piano" || pf.audio) return;
     const n = pf.corrente.frammenti[pf.parte];
-    const a = preparaBrano(n);
-    pf.audio = a;
-    pf.primo = false;
-    a.currentTime = 0;
-    a.volume = 1;
-    a.muted = false;
-    const p = a.play();
-    if (p && p.catch) p.catch(() => {});
-    pf.inizio = performance.now();
+    const riserva = preparaBrano(n);
+    pf.audio = riserva; // segnaposto finché il buffer non è pronto
     $("btn-ascolta").classList.add("nascosto");
     scriviTesto($("piano-messaggio"), "Ascolta con attenzione...");
+    const parti = (a) => {
+      if (stato !== "piano" || pf.audio !== riserva) return;
+      if (!a) {
+        a = riserva;
+        a.currentTime = 0;
+        a.volume = 1;
+        a.muted = false;
+        const p = a.play();
+        if (p && p.catch) p.catch(() => {});
+      }
+      avviaAscolto(a);
+    };
+    if (buffer_brani[n]) buffer_brani[n].then((buf) => parti(buf ? suonaBuffer(buf) : null));
+    else parti(null);
+  }
+  function avviaAscolto(a) {
+    pf.audio = a;
+    pf.primo = false;
+    pf.inizio = performance.now();
     let fotogramma = 1;
     clearInterval(pf.anim);
     pf.anim = setInterval(() => {
       fotogramma = (fotogramma % 3) + 1;
-      $("piano-img").src = `assets/img/pianoforte-${fotogramma}.png?v=2`;
+      $("piano-img").src = `assets/img/pianoforte-${fotogramma}.png?v=3`;
       const d = a.duration || 1;
       $("piano-barra-pieno").style.width = `${Math.min(100, (a.currentTime / d) * 100)}%`;
       const secondi = (performance.now() - pf.inizio) / 1000;
-      if (!pf.puoi && (secondi >= SECONDI_PRIMA_DI_RISPONDERE || a.ended)) permettiRisposta();
+      // si risponde solo a brano finito (o se il browser non è riuscito a farlo partire)
+      if (!pf.puoi && (a.ended || secondi > (a.duration || 60) + 3)) permettiRisposta();
       if (a.ended) fermaAnimazionePiano();
     }, 300);
   }
+  function scriviNome(b, i, testo) {
+    const nome = b.querySelector(".nome");
+    nome.innerHTML = `<span class="tasto">${i + 1}</span>`;
+    nome.appendChild(document.createTextNode(testo));
+  }
   function permettiRisposta() {
     pf.puoi = true;
-    [0, 1].forEach((i) => { $("ritratto-" + i).disabled = false; });
+    [0, 1].forEach((i) => {
+      const b = $("ritratto-" + i);
+      b.disabled = false;
+      b.querySelector("img").src = `assets/img/${pf.corrente.scelta[i]}-serio.png?v=2`;
+    });
     scriviTesto($("piano-messaggio"), TESTI_PIANO.chi);
   }
   function fermaAnimazionePiano() {
     clearInterval(pf.anim);
     pf.anim = null;
-    $("piano-img").src = "assets/img/pianoforte-0.png?v=2";
+    $("piano-img").src = "assets/img/pianoforte-0.png?v=3";
   }
   function sfumaBrano(a) {
     if (!a) return;
+    if (a.sfuma) { a.sfuma(1.2); return; }
     const inizio = performance.now();
     const v0 = a.volume;
     const passo = () => {
@@ -1599,7 +1680,8 @@
       b.disabled = true;
       let umore = "serio";
       if (j === i) umore = giusto ? "felice" : "arrabbiato";
-      b.querySelector("img").src = `assets/img/${c}-${umore}.png`;
+      b.querySelector("img").src = `assets/img/${c}-${umore}.png?v=2`;
+      scriviNome(b, j, COMPOSITORI[c].nome.toUpperCase());
       if (j === i) b.classList.add(giusto ? "scelto-giusto" : "scelto-sbagliato");
     });
     suona(giusto ? "giusto" : "sbagliato");
@@ -1639,6 +1721,7 @@
   }
   function chiudiPianoforte() {
     const id = pf.corrente.stanza;
+    pf.corrente.frammenti.forEach((n) => { delete buffer_brani[n]; }); // libera la memoria
     $("piano").classList.add("nascosto");
     stato = "gioco";
     g.pianiFatti.add(id);

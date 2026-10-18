@@ -72,8 +72,6 @@ const PIANOFORTI = [
   { stanza: 20, frammenti: [14, 15], scelta: ["mozart", "beethoven"] },
 ];
 
-// Dopo quanti secondi di ascolto si può già rispondere (il brano poi sfuma).
-const SECONDI_PRIMA_DI_RISPONDERE = 6;
 
 // Didascalie della scena iniziale.
 const DIDASCALIE = [

@@ -16,7 +16,8 @@ Dopo ogni risposta compare il cartiglio con il titolo del brano e una breve sche
 
 Per arrivare a tutti i pianoforti bisogna:
 
-- nella cameretta al primo piano cade una **torcia**: senza, nelle stanze buie si vede pochissimo;
+- nella cameretta al primo piano cade una **torcia**: senza, il corridoio buio verso lo studio
+  non si attraversa (la seconda metà è nera) e nelle stanze buie si vede pochissimo;
 - trovare la **chiave piccola** nel bagno: sposta l'armadio dello studio, che nasconde il
   **passaggio segreto** per il seminterrato;
 - prendere la **chiave della torre** e scappare dalle **armature** che si svegliano
@@ -32,8 +33,10 @@ dei 16 brani, che si possono riascoltare.
 ## Come si gioca
 
 Funziona su PC e tablet in orizzontale. Si cammina con le frecce o W A S D, oppure tenendo
-premuto il dito (o il mouse) nel punto dove si vuole andare. Al pianoforte si risponde
-toccando il ritratto, oppure con i tasti 1 e 2; Invio per andare avanti.
+premuto il dito (o il mouse) nel punto dove si vuole andare; il ragazzo guarda verso il mouse.
+Al pianoforte si risponde solo dopo aver ascoltato tutto il frammento, toccando il ritratto
+(o con i tasti 1 e 2): i nomi dei compositori compaiono solo dopo la risposta, quindi bisogna
+riconoscerli dal volto. Invio per andare avanti.
 A destra ci sono la mappa del piano (si scopre man mano), i pianoforti suonati, i brani
 riconosciuti e lo zaino. In alto a destra 🎵 spegne i rumori di fondo, 🔊 gli effetti sonori
 e ⛶ mette il gioco a schermo intero.
@@ -63,8 +66,7 @@ testo in `js/contenuti.js` va cambiata anche lì. Un testo senza traduzione comp
 
 I contenuti stanno in [`js/contenuti.js`](js/contenuti.js): i 16 frammenti (file, autore,
 titolo), quale pianoforte li fa ascoltare e fra quali compositori si sceglie, le schede dei
-compositori, i pensieri del ragazzo e i finali. `SECONDI_PRIMA_DI_RISPONDERE` dice dopo quanti
-secondi di ascolto si può già rispondere.
+compositori, i pensieri del ragazzo e i finali.
 Stanze, porte, oggetti e percorsi dei fantasmi sono in [`js/stanze.js`](js/stanze.js).
 
 Per provare una stanza si apre `index.html#stanza=8` (si parte lì con tutti gli oggetti;
@@ -98,6 +100,7 @@ js/gioco.js           motore di gioco
 assets/img/           sfondi delle stanze (da Canva, 1920x1440), personaggi e ritratti dal progetto Scratch
 assets/audio/         effetti sonori e i 16 frammenti dal progetto Scratch
 strumenti/estrai.py   rigenera assets e js/maschere.js dal file .sb3 (Pillow, numpy, ffmpeg);
-                      con la cartella degli sfondi Canva come secondo argomento, le stanze escono a 1920x1440
+                      con le cartelle dei file Canva come argomenti successivi, stanze e copertine
+                      escono a 1920x1440, e ritratti, pianoforte e sprite in alta risoluzione
                       (livelli sfondo, vuoto e ostacoli) e si genera anche l'armadio dello studio
 ```
