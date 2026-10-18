@@ -76,7 +76,13 @@
     "chiave-piccola", "chiave-torre", "pallone", "armatura-fermo", "armatura-passo1", "armatura-passo2", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=5`));
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png?v=2`));
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
-  for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) new Image().src = `assets/img/${c}-${u}.png?v=2`;
+  // (tenute in un elenco, così il browser non le scarta dalla memoria)
+  const ritrattiPronti = [];
+  for (const c of Object.keys(COMPOSITORI)) for (const u of ["mistero", "serio", "felice", "arrabbiato"]) {
+    const r = new Image();
+    r.src = `assets/img/${c}-${u}.png?v=2`;
+    ritrattiPronti.push(r);
+  }
   for (let i = 0; i < 4; i++) new Image().src = `assets/img/pianoforte-${i}.png?v=4`;
   new Image().src = "assets/img/fine.jpg";
   new Image().src = "assets/img/pergamena.png?v=2";
@@ -1872,7 +1878,7 @@
       const c = def.scelta[i];
       b.className = "ritratto";
       b.disabled = true;
-      b.querySelector("img").src = `assets/img/${c}-mistero.png?v=2`;
+      mostraRitratto(b, `assets/img/${c}-mistero.png?v=2`);
       b.querySelector("img").alt = COMPOSITORI[c].nomeCompleto;
       // il nome si scopre solo dopo la risposta: il compositore va riconosciuto dal ritratto
       scriviNome(b, i, "? ? ?");
@@ -1926,6 +1932,17 @@
       if (a.ended) fermaAnimazionePiano();
     }, 300);
   }
+  // cambia il volto di un ritratto: finché la nuova immagine non è pronta il quadro resta vuoto,
+  // altrimenti per un attimo si vedrebbe il compositore del pianoforte precedente
+  function mostraRitratto(b, src) {
+    const im = b.querySelector("img");
+    const url = new URL(src, location.href).href;
+    if (im.src === url && im.complete) return;
+    im.style.visibility = "hidden";
+    im.onload = () => { im.style.visibility = ""; };
+    im.src = url;
+    if (im.complete && im.naturalWidth) im.style.visibility = "";
+  }
   function scriviNome(b, i, testo) {
     const nome = b.querySelector(".nome");
     nome.innerHTML = `<span class="tasto">${i + 1}</span>`;
@@ -1936,7 +1953,7 @@
     [0, 1].forEach((i) => {
       const b = $("ritratto-" + i);
       b.disabled = false;
-      b.querySelector("img").src = `assets/img/${pf.corrente.scelta[i]}-serio.png?v=2`;
+      mostraRitratto(b, `assets/img/${pf.corrente.scelta[i]}-serio.png?v=2`);
     });
     scriviTesto($("piano-messaggio"), TESTI_PIANO.chi);
   }
@@ -1975,7 +1992,7 @@
       b.disabled = true;
       let umore = "serio";
       if (j === i) umore = giusto ? "felice" : "arrabbiato";
-      b.querySelector("img").src = `assets/img/${c}-${umore}.png?v=2`;
+      mostraRitratto(b, `assets/img/${c}-${umore}.png?v=2`);
       scriviNome(b, j, COMPOSITORI[c].nome.toUpperCase());
       if (j === i) b.classList.add(giusto ? "scelto-giusto" : "scelto-sbagliato");
     });
