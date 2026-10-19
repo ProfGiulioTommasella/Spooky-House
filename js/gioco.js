@@ -57,24 +57,36 @@
   //  Immagini
   // ---------------------------------------------------------------
   const img = {};
+  // se il download di un'immagine fallisce (rete lenta, troppe richieste insieme) si riprova
+  // qualche volta: senza, per tutta la partita mancherebbe per esempio un pianoforte
+  let caricate = 0;
   function carica(nome, src) {
     return new Promise((ok) => {
-      const i = new Image();
-      i.onload = () => ok(i);
-      i.onerror = () => ok(null);
-      i.src = src;
-      img[nome] = i;
+      const prova = (n) => {
+        const i = new Image();
+        i.onload = () => { img[nome] = i; caricate++; ok(i); };
+        i.onerror = () => {
+          if (n < 5) setTimeout(() => prova(n + 1), 800 * (n + 1));
+          else { caricate++; ok(null); }
+        };
+        i.src = n ? `${src}&riprova=${n}` : src;
+        if (!n) img[nome] = i;
+      };
+      prova(0);
     });
   }
   const pronte = [];
-  for (const n of Object.keys(STANZE)) if (n !== "21") pronte.push(carica("stanza" + n, `assets/img/stanze/${n}.jpg?v=4`));
-  img.stanza21 = img.stanza0;
   for (const n of ["copertina", "casa", "casa-fantasmi"]) pronte.push(carica(n, `assets/img/${n}.jpg?v=${n === "copertina" ? 3 : 2}`));
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
     "ragazza-fermo", "ragazza-passo1", "ragazza-passo2", "ragazza-torcia-fermo", "ragazza-torcia-passo1", "ragazza-torcia-passo2",
     "fantasma-sx", "fantasma-dx", "fantasma-libro-sx", "fantasma-libro-dx", "gargoyle-1", "gargoyle-2", "amici", "torcia",
     "chiave-piccola", "chiave-torre", "pallone", "armatura-fermo", "armatura-passo1", "armatura-passo2", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=5`));
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png?v=2`));
+  // gli sfondi delle stanze per ultimi: sono i file più pesanti
+  for (const n of Object.keys(STANZE)) if (n !== "21") pronte.push(carica("stanza" + n, `assets/img/stanze/${n}.jpg?v=4`));
+  Object.defineProperty(img, "stanza21", { get: () => img.stanza0 });
+  let tuttoPronto = false;
+  let avvioInAttesa = false;
   // ritratti e pianoforte grande: basta che siano già nella cache quando servono
   // (tenute in un elenco, così il browser non le scarta dalla memoria)
   const ritrattiPronti = [];
@@ -1777,6 +1789,18 @@
 
   function avvia() {
     if (stato !== "titolo") return;
+    // si parte solo con tutte le immagini scaricate (stanze, pianoforti, personaggi)
+    if (!tuttoPronto) {
+      avvioInAttesa = true;
+      $("btn-inizia").disabled = true;
+      const mostra = () => {
+        if (tuttoPronto) return;
+        $("btn-inizia").textContent = `⏳ ${Math.floor((caricate / pronte.length) * 100)}%`;
+        setTimeout(mostra, 200);
+      };
+      mostra();
+      return;
+    }
     sbloccaAudio();
     stato = "intro";
     $("titolo").classList.add("nascosto");
@@ -2142,7 +2166,14 @@
   // ---------------------------------------------------------------
   impostaLingua(lingua);
   aggiornaPulsantiAudio();
-  Promise.all(pronte).then(() => { /* tutte le immagini sono pronte */ });
+  Promise.all(pronte).then(() => {
+    tuttoPronto = true;
+    if (avvioInAttesa) {
+      $("btn-inizia").disabled = false;
+      scriviPulsante($("btn-inizia"), "▶ ", "INIZIA");
+      avvia();
+    }
+  });
   requestAnimationFrame(ciclo);
 
   // Scorciatoia per provare il gioco: index.html#stanza=8 parte da una stanza
