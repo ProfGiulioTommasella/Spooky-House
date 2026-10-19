@@ -341,11 +341,11 @@ def main():
     sprite_png("Pulsante Start 1", "Pulsante Start 1", "start.png")
     sprite_png("Chiave torre", "Chiave torre x semint", "chiave-torre.png")
     sprite_png("Guardiani", "armatura", "armatura.png")
-    # le armature nuove (strumenti/armatura, 560x560, guardano a destra): salvate a 360 px, disegnate a 180
+    # le armature nuove (strumenti/armatura, 600x600, guardano a destra): salvate a 320 px, disegnate a 160
     for c in ["fermo", "passo1", "passo2"]:
         im = Image.open(os.path.join(RADICE, "strumenti", "armatura", f"armatura-{c}.png")).convert("RGBA")
-        salva_png(im.resize((360, 360), Image.LANCZOS), f"armatura-{c}.png")
-        dati["oggetti"][f"armatura-{c}"] = {"w": 180, "h": 180, "cx": 90.0, "cy": 90.0}
+        salva_png(im.resize((320, 320), Image.LANCZOS), f"armatura-{c}.png")
+        dati["oggetti"][f"armatura-{c}"] = {"w": 160, "h": 160, "cx": 80.0, "cy": 80.0}
     for c in ["Bach", "Vivaldi", "Mozart", "Beethoven"]:
         if ritratti_alta_risoluzione(c):
             continue

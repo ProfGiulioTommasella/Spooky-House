@@ -80,7 +80,7 @@
   for (const n of ["ragazzo-fermo", "ragazzo-passo1", "ragazzo-passo2", "ragazzo-torcia-fermo", "ragazzo-torcia-passo1", "ragazzo-torcia-passo2",
     "ragazza-fermo", "ragazza-passo1", "ragazza-passo2", "ragazza-torcia-fermo", "ragazza-torcia-passo1", "ragazza-torcia-passo2",
     "fantasma-sx", "fantasma-dx", "fantasma-libro-sx", "fantasma-libro-dx", "gargoyle-1", "gargoyle-2", "amici", "torcia",
-    "chiave-piccola", "chiave-torre", "pallone", "armatura-fermo", "armatura-passo1", "armatura-passo2", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=5`));
+    "chiave-piccola", "chiave-torre", "pallone", "armatura-fermo", "armatura-passo1", "armatura-passo2", "armadio"]) pronte.push(carica(n, `assets/img/${n}.png?v=${n.startsWith("armatura") ? 6 : 5}`));
   for (const pf of PIANOFORTI) pronte.push(carica("piano" + pf.stanza, `assets/img/piano-${pf.stanza}.png?v=2`));
   // gli sfondi delle stanze per ultimi: sono i file più pesanti
   for (const n of Object.keys(STANZE)) if (n !== "21") pronte.push(carica("stanza" + n, `assets/img/stanze/${n}.jpg?v=4`));
@@ -1507,8 +1507,12 @@
       // si risvegliano tremando, poi marciano alternando i due passi
       const sveglia = a.ritardo > 0;
       const costume = sveglia ? "armatura-fermo" : Math.sin(a.fase) > 0 ? "armatura-passo1" : "armatura-passo2";
-      const scuoti = sveglia ? Math.sin(a.fase * 3) * 0.08 : Math.sin(a.fase) * 0.04;
-      disegnaImg(costume, a.x, a.y, 0.7, a.ang + scuoti);
+      const scuoti = sveglia ? Math.sin(a.fase * 3) * 0.08 : Math.sin(a.fase) * 0.07;
+      // marciando ondeggiano di lato e si alzano a ogni passo, così il movimento si legge meglio
+      const lato = sveglia ? 0 : Math.sin(a.fase) * 4;
+      const sali = sveglia ? 0 : Math.abs(Math.cos(a.fase)) * 0.05;
+      const ox = -Math.sin(a.ang) * lato, oy = Math.cos(a.ang) * lato;
+      disegnaImg(costume, a.x + ox, a.y + oy, 0.7 * (1 + sali), a.ang + scuoti);
     }
 
     // il ragazzo
